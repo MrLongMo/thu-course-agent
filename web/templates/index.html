@@ -23,9 +23,43 @@
       top: 0;
       z-index: 100;
       box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
     header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
+
+    /* ── Tab 切換 ── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+    }
+    .tab-btn {
+      padding: 7px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(255,255,255,.15);
+      color: #fff;
+      transition: background .15s;
+    }
+    .tab-btn.active { background: #fff; color: #1a56db; }
+
+    /* ── Credits badge ── */
+    .credits-badge {
+      background: #fbbf24;
+      color: #1a1a1a;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
 
     /* ── Controls ── */
     .controls {
@@ -81,6 +115,7 @@
       transition: box-shadow .2s, transform .15s;
     }
     .card:hover { box-shadow: 0 4px 16px rgba(26,86,219,.13); transform: translateY(-2px); }
+    .card.selected { border: 2px solid #1a56db; }
 
     .card-title {
       font-size: .97rem;
@@ -172,6 +207,26 @@
     }
     .modal-wrap { position: relative; }
 
+    /* ── Add to Schedule Button ── */
+    .add-btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #1a56db;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .add-btn:hover { background: #1648c0; }
+    .add-btn.remove { background: #ef4444; }
+    .add-btn.remove:hover { background: #dc2626; }
+    .add-btn:disabled { background: #ccc; cursor: default; }
+
     /* ── Loading / Empty ── */
     .state-msg {
       text-align: center;
@@ -201,33 +256,188 @@
     .pagination button:disabled { opacity: .4; cursor: default; }
     .pagination .page-info { align-self: center; font-size: .83rem; color: #666; }
 
+    /* ══════════════════════════════════
+       週課表 (Schedule View)
+    ══════════════════════════════════ */
+    #scheduleView {
+      display: none;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    /* 已選課程列表 */
+    .selected-list {
+      margin-bottom: 16px;
+    }
+    .selected-list h2 {
+      font-size: .9rem;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .selected-list .empty-hint {
+      font-size: .83rem;
+      color: #aaa;
+      padding: 12px 0;
+    }
+    .selected-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      gap: 8px;
+    }
+    .selected-item .si-name { font-size: .88rem; font-weight: 600; flex: 1; }
+    .selected-item .si-info { font-size: .76rem; color: #888; }
+    .selected-item .si-remove {
+      background: none;
+      border: 1px solid #fca5a5;
+      color: #ef4444;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: .75rem;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .selected-item .si-remove:hover { background: #fef2f2; }
+
+    /* 課表格子 */
+    .timetable-wrap {
+      overflow-x: auto;
+    }
+    .timetable {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 540px;
+      font-size: .78rem;
+    }
+    .timetable th {
+      background: #1a56db;
+      color: #fff;
+      padding: 8px 4px;
+      text-align: center;
+      font-weight: 600;
+      min-width: 90px;
+    }
+    .timetable th.period-col {
+      background: #374151;
+      min-width: 38px;
+      font-size: .72rem;
+    }
+    .timetable td {
+      border: 1px solid #e5e7eb;
+      height: 44px;
+      vertical-align: middle;
+      text-align: center;
+      background: #fff;
+      padding: 2px;
+    }
+    .timetable td.period-label {
+      background: #f9fafb;
+      color: #6b7280;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+    /* 有課的格子 */
+    .timetable td.has-course {
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+      font-size: .72rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      line-height: 1.2;
+    }
+    .timetable td.has-course:hover { background: #bfdbfe; }
+    /* 衝堂格子 */
+    .timetable td.conflict {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .timetable td.conflict:hover { background: #fecaca; }
+
+    /* 節次時間對應表 */
+    .period-times {
+      font-size: .7rem;
+      color: #9ca3af;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
     @media (max-width: 480px) {
       .grid { grid-template-columns: 1fr; }
       .modal { max-height: 90vh; }
+      .timetable { font-size: .68rem; }
+      .timetable th { min-width: 60px; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>東海大學選課助手</h1>
-  <p>114學年度 第二學期 · 共 {{ departments|length }} 個系所</p>
+  <div>
+    <h1>東海大學選課助手</h1>
+    <p>114學年度 第二學期 · 共 {{ departments|length }} 個系所</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span class="credits-badge" id="creditsBadge">已選 0 學分</span>
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabList" onclick="switchTab('list')">課程列表</button>
+      <button class="tab-btn" id="tabSched" onclick="switchTab('schedule')">週課表</button>
+    </div>
+  </div>
 </header>
 
-<div class="controls">
-  <input id="searchInput" type="search" placeholder="搜尋課程名稱…" autocomplete="off">
-  <select id="deptSelect">
-    <option value="">全部系所</option>
-    {% for dept in departments %}
-    <option value="{{ dept }}">{{ dept }}</option>
-    {% endfor %}
-  </select>
+<!-- 課程列表 View -->
+<div id="listView">
+  <div class="controls">
+    <input id="searchInput" type="search" placeholder="搜尋課程名稱…" autocomplete="off">
+    <select id="deptSelect">
+      <option value="">全部系所</option>
+      {% for dept in departments %}
+      <option value="{{ dept }}">{{ dept }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="stats" id="statsBar">載入中…</div>
+  <div class="grid" id="courseGrid"></div>
+  <div class="pagination" id="pagination"></div>
 </div>
 
-<div class="stats" id="statsBar">載入中…</div>
+<!-- 週課表 View -->
+<div id="scheduleView">
+  <div class="selected-list">
+    <h2>已選課程</h2>
+    <div id="selectedList"><p class="empty-hint">尚未加入任何課程</p></div>
+  </div>
 
-<div class="grid" id="courseGrid"></div>
-<div class="pagination" id="pagination"></div>
+  <div class="timetable-wrap">
+    <table class="timetable" id="timetable">
+      <thead>
+        <tr>
+          <th class="period-col">節</th>
+          <th>週一</th>
+          <th>週二</th>
+          <th>週三</th>
+          <th>週四</th>
+          <th>週五</th>
+        </tr>
+      </thead>
+      <tbody id="timetableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="period-times">
+    節次對應：1=07:10 / 2=08:10 / 3=09:10 / 4=10:10 / 5=11:10 / 6=12:10 / 7=13:10 / 8=14:10 / 9=15:10 / 10=16:10 / 11=17:10 / 12=18:20 / 13=19:20
+  </div>
+</div>
 
 <!-- Detail Modal -->
 <div class="overlay" id="overlay" onclick="closeModal(event)">
@@ -240,9 +450,18 @@
 </div>
 
 <script>
-  // ── State ──
+  // ════════════════════════════════
+  //  State
+  // ════════════════════════════════
   let state = { q: '', dept: '', page: 1, total: 0 };
   const PER_PAGE = 30;
+
+  // 已選課程 map: courseId → { course, slots }
+  // slots: [{day:1-5, periods:[...], room:''}]
+  const selectedCourses = {};
+
+  // 目前 modal 開著的課程物件
+  let modalCourse = null;
 
   // ── DOM refs ──
   const grid       = document.getElementById('courseGrid');
@@ -257,7 +476,20 @@
     debTimer = setTimeout(fn, ms);
   }
 
-  // ── Fetch & Render ──
+  // ════════════════════════════════
+  //  Tab 切換
+  // ════════════════════════════════
+  function switchTab(tab) {
+    document.getElementById('listView').style.display   = tab === 'list'     ? '' : 'none';
+    document.getElementById('scheduleView').style.display = tab === 'schedule' ? 'block' : 'none';
+    document.getElementById('tabList').classList.toggle('active',  tab === 'list');
+    document.getElementById('tabSched').classList.toggle('active', tab === 'schedule');
+    if (tab === 'schedule') renderSchedule();
+  }
+
+  // ════════════════════════════════
+  //  課程列表
+  // ════════════════════════════════
   async function fetchCourses() {
     const params = new URLSearchParams({
       q: state.q, dept: state.dept, page: state.page, per_page: PER_PAGE
@@ -276,7 +508,6 @@
       return;
     }
     grid.innerHTML = courses.map(c => cardHTML(c)).join('');
-    // 綁定 click
     grid.querySelectorAll('.card').forEach((el, i) => {
       el.addEventListener('click', () => openModal(courses[i]));
     });
@@ -293,15 +524,17 @@
       : ratio >= .8
         ? `<span class="tag warn">${enrolled}/${limit}</span>`
         : `<span class="tag ok">${enrolled}/${limit}</span>`;
+    const isSelected = !!selectedCourses[c['選課代碼']];
 
     return `
-      <div class="card">
+      <div class="card${isSelected ? ' selected' : ''}">
         <div class="card-title">${escHtml(c['課程名稱'] || '—')}</div>
         <div class="card-dept">${escHtml(c['開課系所名稱'] || '')}</div>
         <div class="card-meta">
           <span class="tag">📚 ${c['學分'] ?? '—'} 學分</span>
           ${enrollTag}
           ${c['必選修'] ? typeTag(c['必選修']) : ''}
+          ${isSelected ? '<span class="tag" style="background:#dcfce7;color:#166534">✓ 已選</span>' : ''}
         </div>
         ${limit > 0 ? `
         <div class="enroll-bar">
@@ -339,12 +572,16 @@
     window.scrollTo({top: 0, behavior: 'smooth'});
   }
 
-  // ── Modal ──
-  function openModal(c) {
+  // ════════════════════════════════
+  //  Modal
+  // ════════════════════════════════
+  async function openModal(c) {
+    modalCourse = c;
     const enrolled = c['選課人數'] ?? 0;
     const limit    = c['上限人數']  ?? 0;
     const grades   = c['評分方式'];
     const overview = c['課程概述'];
+    const isSelected = !!selectedCourses[c['選課代碼']];
 
     let gradesHTML = '';
     if (grades && grades.length) {
@@ -361,6 +598,7 @@
         </div>`;
     }
 
+    const btnId = 'modalAddBtn';
     document.getElementById('modalContent').innerHTML = `
       <div class="modal-title">${escHtml(c['課程名稱']||'')}</div>
       <div class="modal-dept">${escHtml(c['開課系所名稱']||'')} · 選課代碼 ${c['選課代碼']||'—'}</div>
@@ -375,6 +613,10 @@
         <p>${escHtml(overview)}</p>
       </div>` : ''}
       ${gradesHTML}
+      <button class="add-btn${isSelected ? ' remove' : ''}" id="${btnId}"
+        onclick="toggleCourse()">
+        ${isSelected ? '移除課程' : '加入課表'}
+      </button>
     `;
     overlay.classList.add('open');
   }
@@ -383,6 +625,172 @@
     if (e.target === overlay) overlay.classList.remove('open');
   }
   function closeModalDirect() { overlay.classList.remove('open'); }
+
+  // ════════════════════════════════
+  //  加入 / 移除 課表
+  // ════════════════════════════════
+  async function toggleCourse() {
+    if (!modalCourse) return;
+    const cid = modalCourse['選課代碼'];
+
+    if (selectedCourses[cid]) {
+      // 移除
+      delete selectedCourses[cid];
+      updateCredits();
+      refreshModalBtn();
+      fetchCourses(); // 更新 card 狀態
+      return;
+    }
+
+    // 加入：先抓時間
+    const btn = document.getElementById('modalAddBtn');
+    btn.disabled = true;
+    btn.textContent = '抓取時間中…';
+
+    try {
+      const res = await fetch(`/api/course_time/${cid}`);
+      const data = await res.json();
+      const slots = data.slots || [];
+
+      // 衝堂檢查
+      const conflicts = checkConflict(slots, cid);
+      if (conflicts.length > 0) {
+        const names = conflicts.map(id => selectedCourses[id]?.course['課程名稱'] || id).join('、');
+        if (!confirm(`與「${names}」時間衝突，仍要加入嗎？`)) {
+          btn.disabled = false;
+          btn.textContent = '加入課表';
+          return;
+        }
+      }
+
+      selectedCourses[cid] = { course: modalCourse, slots };
+      updateCredits();
+      refreshModalBtn();
+      fetchCourses();
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = '加入課表';
+      alert('無法抓取時間資料，請稍後再試');
+    }
+  }
+
+  function checkConflict(newSlots, skipId) {
+    const conflictIds = new Set();
+    for (const [cid, entry] of Object.entries(selectedCourses)) {
+      if (cid === skipId) continue;
+      for (const ns of newSlots) {
+        for (const es of entry.slots) {
+          if (ns.day === es.day && ns.periods.some(p => es.periods.includes(p))) {
+            conflictIds.add(cid);
+          }
+        }
+      }
+    }
+    return [...conflictIds];
+  }
+
+  function refreshModalBtn() {
+    if (!modalCourse) return;
+    const cid = modalCourse['選課代碼'];
+    const isSelected = !!selectedCourses[cid];
+    const btn = document.getElementById('modalAddBtn');
+    if (!btn) return;
+    btn.disabled = false;
+    btn.textContent = isSelected ? '移除課程' : '加入課表';
+    btn.className = 'add-btn' + (isSelected ? ' remove' : '');
+  }
+
+  function updateCredits() {
+    let total = 0;
+    for (const entry of Object.values(selectedCourses)) {
+      total += entry.course['學分'] ?? 0;
+    }
+    document.getElementById('creditsBadge').textContent = `已選 ${total} 學分`;
+  }
+
+  // ════════════════════════════════
+  //  週課表 Render
+  // ════════════════════════════════
+  const PERIODS = Array.from({length: 13}, (_, i) => i + 1);
+  const DAY_NAMES = ['週一','週二','週三','週四','週五'];
+
+  function renderSchedule() {
+    renderSelectedList();
+    renderTimetable();
+  }
+
+  function renderSelectedList() {
+    const container = document.getElementById('selectedList');
+    const entries = Object.values(selectedCourses);
+    if (!entries.length) {
+      container.innerHTML = '<p class="empty-hint">尚未加入任何課程</p>';
+      return;
+    }
+    container.innerHTML = entries.map(({ course }) => {
+      const cid = course['選課代碼'];
+      const timeStr = formatSlots(selectedCourses[cid].slots);
+      return `
+        <div class="selected-item">
+          <div>
+            <div class="si-name">${escHtml(course['課程名稱'])}</div>
+            <div class="si-info">${escHtml(course['開課系所名稱'])} · ${course['學分']}學分 ${timeStr ? '· ' + timeStr : ''}</div>
+          </div>
+          <button class="si-remove" onclick="removeCourse('${cid}')">移除</button>
+        </div>`;
+    }).join('');
+  }
+
+  function formatSlots(slots) {
+    if (!slots || !slots.length) return '（無時間資料）';
+    const dayNames = ['','一','二','三','四','五'];
+    return slots.map(s => `${dayNames[s.day]}/${s.periods.join(',')}`).join(' ');
+  }
+
+  function renderTimetable() {
+    // 建立 grid map: day(1-5) → period(1-13) → [{ cid, name, conflicted }]
+    const grid = {};
+    for (let d = 1; d <= 5; d++) grid[d] = {};
+    for (let p = 1; p <= 13; p++) for (let d = 1; d <= 5; d++) grid[d][p] = [];
+
+    for (const [cid, entry] of Object.entries(selectedCourses)) {
+      for (const slot of entry.slots) {
+        const d = slot.day;
+        if (d < 1 || d > 5) continue;
+        for (const p of slot.periods) {
+          if (p < 1 || p > 13) continue;
+          grid[d][p].push({ cid, name: entry.course['課程名稱'] });
+        }
+      }
+    }
+
+    // 建表格
+    const tbody = document.getElementById('timetableBody');
+    tbody.innerHTML = PERIODS.map(p => {
+      const cells = [1,2,3,4,5].map(d => {
+        const items = grid[d][p];
+        if (!items.length) return `<td></td>`;
+        const isConflict = items.length > 1;
+        const cls = isConflict ? 'has-course conflict' : 'has-course';
+        const label = items.map(i => escHtml(shortenName(i.name))).join(' / ');
+        return `<td class="${cls}" title="${items.map(i=>escHtml(i.name)).join(' / ')}">${label}</td>`;
+      }).join('');
+      return `<tr>
+        <td class="period-label">${p}</td>
+        ${cells}
+      </tr>`;
+    }).join('');
+  }
+
+  function shortenName(name) {
+    return name.length > 6 ? name.slice(0, 6) + '…' : name;
+  }
+
+  function removeCourse(cid) {
+    delete selectedCourses[cid];
+    updateCredits();
+    fetchCourses();
+    renderSchedule();
+  }
 
   // ── XSS 防護 ──
   function escHtml(s) {
