@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>東海大學選課助手</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+      background: #f5f6fa;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a56db;
+      color: #fff;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
+    header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 62px;
+      z-index: 90;
+    }
+    .controls input,
+    .controls select {
+      flex: 1 1 200px;
+      padding: 9px 13px;
+      border: 1.5px solid #d0d7e3;
+      border-radius: 8px;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .controls input:focus,
+    .controls select:focus { border-color: #1a56db; }
+
+    /* ── Stats bar ── */
+    .stats {
+      padding: 8px 16px;
+      font-size: .8rem;
+      color: #666;
+      background: #f5f6fa;
+    }
+
+    /* ── Course Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+      padding: 12px 16px 24px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: box-shadow .2s, transform .15s;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(26,86,219,.13); transform: translateY(-2px); }
+
+    .card-title {
+      font-size: .97rem;
+      font-weight: 700;
+      color: #1a56db;
+      line-height: 1.35;
+    }
+    .card-dept {
+      font-size: .76rem;
+      color: #888;
+      margin-top: -4px;
+    }
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #eef2ff;
+      color: #3b5bdb;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: .75rem;
+      font-weight: 500;
+    }
+    .tag.warn  { background: #fff3e0; color: #e65100; }
+    .tag.full  { background: #fce4ec; color: #c62828; }
+    .tag.ok    { background: #e8f5e9; color: #2e7d32; }
+
+    /* 選課人數 bar */
+    .enroll-bar {
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .enroll-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .4s;
+    }
+
+    /* ── Detail Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 200;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 18px 18px 0 0;
+      padding: 24px 20px 32px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: #1a56db; }
+    .modal-dept  { font-size: .8rem; color: #888; margin-top: 3px; }
+    .modal-section { margin-top: 16px; }
+    .modal-section h3 { font-size: .82rem; color: #999; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .modal-section p  { font-size: .88rem; line-height: 1.65; color: #444; }
+    .grade-table { width: 100%; border-collapse: collapse; font-size: .84rem; margin-top: 6px; }
+    .grade-table th { background: #f0f4ff; color: #1a56db; padding: 6px 10px; text-align: left; font-weight: 600; }
+    .grade-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
+    .close-btn {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: #f0f0f0;
+      border: none; border-radius: 50%;
+      width: 32px; height: 32px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-wrap { position: relative; }
+
+    /* ── Loading / Empty ── */
+    .state-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+      font-size: .9rem;
+      grid-column: 1/-1;
+    }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px 32px;
+    }
+    .pagination button {
+      padding: 7px 14px;
+      border: 1.5px solid #d0d7e3;
+      border-radius: 8px;
+      background: #fff;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .pagination button:hover:not(:disabled) { background: #eef2ff; border-color: #1a56db; color: #1a56db; }
+    .pagination button:disabled { opacity: .4; cursor: default; }
+    .pagination .page-info { align-self: center; font-size: .83rem; color: #666; }
+
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: 1fr; }
+      .modal { max-height: 90vh; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>東海大學選課助手</h1>
+  <p>114學年度 第二學期 · 共 {{ departments|length }} 個系所</p>
+</header>
+
+<div class="controls">
+  <input id="searchInput" type="search" placeholder="搜尋課程名稱…" autocomplete="off">
+  <select id="deptSelect">
+    <option value="">全部系所</option>
+    {% for dept in departments %}
+    <option value="{{ dept }}">{{ dept }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="stats" id="statsBar">載入中…</div>
+
+<div class="grid" id="courseGrid"></div>
+<div class="pagination" id="pagination"></div>
+
+<!-- Detail Modal -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal-wrap">
+    <div class="modal" id="modal">
+      <button class="close-btn" onclick="closeModalDirect()">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── State ──
+  let state = { q: '', dept: '', page: 1, total: 0 };
+  const PER_PAGE = 30;
+
+  // ── DOM refs ──
+  const grid       = document.getElementById('courseGrid');
+  const statsBar   = document.getElementById('statsBar');
+  const pagination = document.getElementById('pagination');
+  const overlay    = document.getElementById('overlay');
+
+  // ── Debounce ──
+  let debTimer;
+  function debounce(fn, ms=320) {
+    clearTimeout(debTimer);
+    debTimer = setTimeout(fn, ms);
+  }
+
+  // ── Fetch & Render ──
+  async function fetchCourses() {
+    const params = new URLSearchParams({
+      q: state.q, dept: state.dept, page: state.page, per_page: PER_PAGE
+    });
+    const res  = await fetch(`/api/courses?${params}`);
+    const data = await res.json();
+    state.total = data.total;
+    renderCourses(data.courses);
+    renderStats(data.total, data.page, data.per_page);
+    renderPagination(data.total, data.page);
+  }
+
+  function renderCourses(courses) {
+    if (!courses.length) {
+      grid.innerHTML = '<p class="state-msg">找不到符合條件的課程</p>';
+      return;
+    }
+    grid.innerHTML = courses.map(c => cardHTML(c)).join('');
+    // 綁定 click
+    grid.querySelectorAll('.card').forEach((el, i) => {
+      el.addEventListener('click', () => openModal(courses[i]));
+    });
+  }
+
+  function cardHTML(c) {
+    const enrolled = c['選課人數'] ?? 0;
+    const limit    = c['上限人數']  ?? 0;
+    const ratio    = limit > 0 ? enrolled / limit : 0;
+    const pct      = Math.min(100, Math.round(ratio * 100));
+    const fillColor = ratio >= 1 ? '#ef4444' : ratio >= .8 ? '#f97316' : '#22c55e';
+    const enrollTag = ratio >= 1
+      ? `<span class="tag full">爆滿 ${enrolled}/${limit}</span>`
+      : ratio >= .8
+        ? `<span class="tag warn">${enrolled}/${limit}</span>`
+        : `<span class="tag ok">${enrolled}/${limit}</span>`;
+
+    return `
+      <div class="card">
+        <div class="card-title">${escHtml(c['課程名稱'] || '—')}</div>
+        <div class="card-dept">${escHtml(c['開課系所名稱'] || '')}</div>
+        <div class="card-meta">
+          <span class="tag">📚 ${c['學分'] ?? '—'} 學分</span>
+          ${enrollTag}
+          ${c['必選修'] ? typeTag(c['必選修']) : ''}
+        </div>
+        ${limit > 0 ? `
+        <div class="enroll-bar">
+          <div class="enroll-fill" style="width:${pct}%;background:${fillColor}"></div>
+        </div>` : ''}
+      </div>`;
+  }
+
+  function typeTag(val) {
+    const map = {1:'必修', 2:'選修', 3:'選修'};
+    const label = map[val] || val;
+    return `<span class="tag" style="background:#f3f4f6;color:#555">${label}</span>`;
+  }
+
+  function renderStats(total, page, per_page) {
+    const start = (page-1)*per_page + 1;
+    const end   = Math.min(page*per_page, total);
+    statsBar.textContent = total > 0
+      ? `共 ${total} 門課程，顯示第 ${start}–${end} 筆`
+      : '找不到課程';
+  }
+
+  function renderPagination(total, page) {
+    const totalPages = Math.ceil(total / PER_PAGE);
+    if (totalPages <= 1) { pagination.innerHTML = ''; return; }
+    pagination.innerHTML = `
+      <button onclick="goPage(${page-1})" ${page<=1?'disabled':''}>← 上一頁</button>
+      <span class="page-info">第 ${page} / ${totalPages} 頁</span>
+      <button onclick="goPage(${page+1})" ${page>=totalPages?'disabled':''}>下一頁 →</button>`;
+  }
+
+  function goPage(p) {
+    state.page = p;
+    fetchCourses();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  // ── Modal ──
+  function openModal(c) {
+    const enrolled = c['選課人數'] ?? 0;
+    const limit    = c['上限人數']  ?? 0;
+    const grades   = c['評分方式'];
+    const overview = c['課程概述'];
+
+    let gradesHTML = '';
+    if (grades && grades.length) {
+      const rows = grades.map(g =>
+        `<tr><td>${escHtml(g['評分項目'])}</td><td>${g['配分比例']}%</td><td>${escHtml(g['說明']||'')}</td></tr>`
+      ).join('');
+      gradesHTML = `
+        <div class="modal-section">
+          <h3>評分方式</h3>
+          <table class="grade-table">
+            <thead><tr><th>項目</th><th>比例</th><th>說明</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    document.getElementById('modalContent').innerHTML = `
+      <div class="modal-title">${escHtml(c['課程名稱']||'')}</div>
+      <div class="modal-dept">${escHtml(c['開課系所名稱']||'')} · 選課代碼 ${c['選課代碼']||'—'}</div>
+      <div class="card-meta" style="margin-top:12px;flex-wrap:wrap;display:flex;gap:6px">
+        <span class="tag">📚 ${c['學分']??'—'} 學分</span>
+        <span class="tag">👥 ${enrolled} / ${limit} 人</span>
+        ${c['必選修'] ? typeTag(c['必選修']) : ''}
+      </div>
+      ${overview ? `
+      <div class="modal-section">
+        <h3>課程概述</h3>
+        <p>${escHtml(overview)}</p>
+      </div>` : ''}
+      ${gradesHTML}
+    `;
+    overlay.classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === overlay) overlay.classList.remove('open');
+  }
+  function closeModalDirect() { overlay.classList.remove('open'); }
+
+  // ── XSS 防護 ──
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Event listeners ──
+  document.getElementById('searchInput').addEventListener('input', e => {
+    debounce(() => { state.q = e.target.value.trim(); state.page = 1; fetchCourses(); });
+  });
+  document.getElementById('deptSelect').addEventListener('change', e => {
+    state.dept = e.target.value; state.page = 1; fetchCourses();
+  });
+
+  // ── Init ──
+  fetchCourses();
+</script>
+</body>
+</html>
