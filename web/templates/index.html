@@ -227,6 +227,45 @@
     .add-btn.remove:hover { background: #dc2626; }
     .add-btn:disabled { background: #ccc; cursor: default; }
 
+    /* ── AI 分析區塊 ── */
+    .ai-section {
+      margin-top: 16px;
+      border: 1.5px dashed #c7d2fe;
+      border-radius: 10px;
+      padding: 14px 16px;
+      background: #f5f7ff;
+    }
+    .ai-section h3 {
+      font-size: .82rem;
+      color: #6366f1;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ai-placeholder {
+      font-size: .85rem;
+      color: #888;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .ai-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
     /* ── Loading / Empty ── */
     .state-msg {
       text-align: center;
@@ -613,6 +652,11 @@
         <p>${escHtml(overview)}</p>
       </div>` : ''}
       ${gradesHTML}
+      <div class="ai-section">
+        <h3>🤖 AI 分析</h3>
+        <p class="ai-placeholder">點擊按鈕取得 AI 分析 — 包含難易度評分、Dcard 評價摘要（Phase 4 開放）</p>
+        <button class="ai-btn" disabled>✨ 取得 AI 分析</button>
+      </div>
       <button class="add-btn${isSelected ? ' remove' : ''}" id="${btnId}"
         onclick="toggleCourse()">
         ${isSelected ? '移除課程' : '加入課表'}
