@@ -262,9 +262,17 @@
       border-radius: 8px;
       font-size: .85rem;
       font-weight: 600;
-      cursor: not-allowed;
-      opacity: .55;
+      cursor: pointer;
+      transition: background .15s;
     }
+    .ai-btn:hover:not(:disabled) { background: #4f46e5; }
+    .ai-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* AI 結果 */
+    .ai-result { margin-top: 10px; font-size: .85rem; line-height: 1.7; color: #444; }
+    .ai-result .ai-label { font-weight: 700; color: #6366f1; }
+    .ai-loading { font-size: .85rem; color: #6366f1; margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+    .ai-error { font-size: .84rem; color: #ef4444; margin-top: 8px; }
 
     /* ── Loading / Empty ── */
     .state-msg {
@@ -365,7 +373,7 @@
     }
     .timetable th.period-col {
       background: #374151;
-      min-width: 38px;
+      min-width: 80px;
       font-size: .72rem;
     }
     .timetable td {
@@ -381,6 +389,21 @@
       color: #6b7280;
       font-size: .7rem;
       font-weight: 600;
+      white-space: nowrap;
+    }
+    .period-time {
+      display: block;
+      font-size: .6rem;
+      color: #9ca3af;
+      font-weight: 400;
+      margin-top: 1px;
+    }
+    /* B節（午休）列淡底色 */
+    .timetable tr.period-B td {
+      background: #f3f4f6;
+    }
+    .timetable tr.period-B td.period-label {
+      background: #e9eaec;
     }
     /* 有課的格子 */
     .timetable td.has-course {
@@ -437,7 +460,7 @@
 <!-- 課程列表 View -->
 <div id="listView">
   <div class="controls">
-    <input id="searchInput" type="search" placeholder="搜尋課程名稱…" autocomplete="off">
+    <input id="searchInput" type="search" placeholder="搜尋課程名稱、教師、選課代碼…" autocomplete="off">
     <select id="deptSelect">
       <option value="">全部系所</option>
       {% for dept in departments %}
@@ -474,7 +497,7 @@
   </div>
 
   <div class="period-times">
-    節次對應：1=07:10 / 2=08:10 / 3=09:10 / 4=10:10 / 5=11:10 / 6=12:10 / 7=13:10 / 8=14:10 / 9=15:10 / 10=16:10 / 11=17:10 / 12=18:20 / 13=19:20
+    節次時間：1=08:10 / 2=09:10 / 3=10:20 / 4=11:20 / B=12:10（午休）/ 5=13:10 / 6=14:10 / 7=15:20 / 8=16:20 / 9=17:20 / 10=18:20 / 11=19:20 / 12=20:20 / 13=21:20
   </div>
 </div>
 
@@ -646,16 +669,33 @@
         <span class="tag">👥 ${enrolled} / ${limit} 人</span>
         ${c['必選修'] ? typeTag(c['必選修']) : ''}
       </div>
+      <div class="modal-section" style="margin-top:12px">
+        <table style="font-size:.87rem;color:#444;border-collapse:collapse;width:100%">
+          <tr>
+            <td style="width:80px;color:#999;padding:3px 0">授課教師</td>
+            <td style="padding:3px 0;font-weight:500">${escHtml(c['授課教師']||'—')}</td>
+          </tr>
+          <tr>
+            <td style="color:#999;padding:3px 0">上課時間</td>
+            <td style="padding:3px 0">${escHtml(c['上課時間']||'—')}</td>
+          </tr>
+          <tr>
+            <td style="color:#999;padding:3px 0">教室</td>
+            <td style="padding:3px 0">${escHtml(c['教室']||'—')}</td>
+          </tr>
+        </table>
+      </div>
       ${overview ? `
       <div class="modal-section">
         <h3>課程概述</h3>
         <p>${escHtml(overview)}</p>
       </div>` : ''}
       ${gradesHTML}
-      <div class="ai-section">
+      <div class="ai-section" id="aiSection">
         <h3>🤖 AI 分析</h3>
-        <p class="ai-placeholder">點擊按鈕取得 AI 分析 — 包含難易度評分、Dcard 評價摘要（Phase 4 開放）</p>
-        <button class="ai-btn" disabled>✨ 取得 AI 分析</button>
+        <p class="ai-placeholder" id="aiPlaceholder">搜尋 Dcard 評價，分析難易度與上課風格（需 5-10 秒）</p>
+        <div id="aiResult"></div>
+        <button class="ai-btn" id="aiBtn" onclick="triggerAI('${c['選課代碼']}')">✨ 取得 AI 分析</button>
       </div>
       <button class="add-btn${isSelected ? ' remove' : ''}" id="${btnId}"
         onclick="toggleCourse()">
@@ -755,7 +795,13 @@
   // ════════════════════════════════
   //  週課表 Render
   // ════════════════════════════════
-  const PERIODS = Array.from({length: 13}, (_, i) => i + 1);
+  const PERIODS = [1, 2, 3, 4, 'B', 5, 6, 7, 8, 9, 10, 11, 12, 13];
+  const PERIOD_TIMES = {
+    1:'08:10~09:00', 2:'09:10~10:00', 3:'10:20~11:10', 4:'11:20~12:10',
+    'B':'12:10~13:00', 5:'13:10~14:00', 6:'14:10~15:00', 7:'15:20~16:10',
+    8:'16:20~17:10', 9:'17:20~18:10', 10:'18:20~19:10', 11:'19:20~20:10',
+    12:'20:20~21:10', 13:'21:20~22:10'
+  };
   const DAY_NAMES = ['週一','週二','週三','週四','週五'];
 
   function renderSchedule() {
@@ -794,7 +840,7 @@
     // 建立 grid map: day(1-5) → period(1-13) → [{ cid, name, conflicted }]
     const grid = {};
     for (let d = 1; d <= 5; d++) grid[d] = {};
-    for (let p = 1; p <= 13; p++) for (let d = 1; d <= 5; d++) grid[d][p] = [];
+    for (const p of PERIODS) for (let d = 1; d <= 5; d++) grid[d][p] = [];
 
     for (const [cid, entry] of Object.entries(selectedCourses)) {
       for (const slot of entry.slots) {
@@ -818,8 +864,8 @@
         const label = items.map(i => escHtml(shortenName(i.name))).join(' / ');
         return `<td class="${cls}" title="${items.map(i=>escHtml(i.name)).join(' / ')}">${label}</td>`;
       }).join('');
-      return `<tr>
-        <td class="period-label">${p}</td>
+      return `<tr class="${p === 'B' ? 'period-B' : ''}">
+        <td class="period-label">${p}<span class="period-time">${PERIOD_TIMES[p]||''}</span></td>
         ${cells}
       </tr>`;
     }).join('');
@@ -841,6 +887,68 @@
     return String(s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;')
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ════════════════════════════════
+  //  AI 分析
+  // ════════════════════════════════
+  async function triggerAI(courseId) {
+    const btn         = document.getElementById('aiBtn');
+    const placeholder = document.getElementById('aiPlaceholder');
+    const resultDiv   = document.getElementById('aiResult');
+
+    // 設定 loading 狀態
+    btn.disabled = true;
+    btn.textContent = '分析中…';
+    placeholder.style.display = 'none';
+    resultDiv.innerHTML = '<div class="ai-loading">⏳ 正在搜尋 Dcard 評價並分析，請稍候…</div>';
+
+    try {
+      const res  = await fetch(`/api/analyze/${courseId}`);
+      const data = await res.json();
+
+      if (data.no_data) {
+        // 搜唔到評價
+        resultDiv.innerHTML = '<p class="ai-error">暫無 Dcard 評價資料，無法進行分析。</p>';
+        btn.textContent = '重新分析';
+        btn.disabled = false;
+        return;
+      }
+
+      if (data.error) {
+        resultDiv.innerHTML = `<p class="ai-error">⚠️ ${escHtml(data.error)}</p>`;
+        btn.textContent = '重新分析';
+        btn.disabled = false;
+        return;
+      }
+
+      // 解析 Groq 輸出的三段文字
+      const lines = data.analysis.split('\n').filter(l => l.trim());
+      let html = `<div class="ai-result">`;
+      html += `<p style="font-size:.75rem;color:#aaa;margin-bottom:8px">參考 ${data.source_count} 筆 Dcard 貼文</p>`;
+      for (const line of lines) {
+        if (line.startsWith('摘要：')) {
+          html += `<p><span class="ai-label">📝 摘要</span><br>${escHtml(line.replace('摘要：', '').trim())}</p>`;
+        } else if (line.startsWith('整體傾向：')) {
+          const val = line.replace('整體傾向：', '').trim();
+          const color = val.includes('正面') ? '#16a34a' : val.includes('負面') ? '#dc2626' : '#b45309';
+          html += `<p style="margin-top:8px"><span class="ai-label">💬 整體傾向</span>　<span style="color:${color};font-weight:700">${escHtml(val)}</span></p>`;
+        } else if (line.startsWith('難易度：')) {
+          html += `<p style="margin-top:8px"><span class="ai-label">⚡ 難易度</span>　${escHtml(line.replace('難易度：', '').trim())}</p>`;
+        }
+      }
+      html += '</div>';
+      resultDiv.innerHTML = html;
+
+      // 分析完成，改按鈕為「重新分析」
+      btn.textContent = '🔄 重新分析';
+      btn.disabled = false;
+
+    } catch (err) {
+      resultDiv.innerHTML = '<p class="ai-error">⚠️ 網路錯誤，請稍後再試。</p>';
+      btn.textContent = '重新分析';
+      btn.disabled = false;
+    }
   }
 
   // ── Event listeners ──
