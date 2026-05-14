@@ -4,12 +4,27 @@ THU 選課輔助工具 - Flask 主程式
 import json
 import os
 import re
+import time
 import requests
+from collections import defaultdict
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, jsonify, request
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ── Rate limiting：每個 IP 每分鐘最多 3 次 AI 分析 ──
+_rate_store: dict = defaultdict(list)
+RATE_LIMIT  = 3   # 最多次數
+RATE_WINDOW = 60  # 秒
+
+def _check_rate_limit(ip: str) -> bool:
+    now = time.time()
+    _rate_store[ip] = [t for t in _rate_store[ip] if now - t < RATE_WINDOW]
+    if len(_rate_store[ip]) >= RATE_LIMIT:
+        return False
+    _rate_store[ip].append(now)
+    return True
 
 # ── AI 分析客戶端（lazy init，避免缺 key 時整個 app 掛掉）──
 _tavily_client = None
@@ -271,6 +286,11 @@ def api_analyze(course_id):
     params: course_id — 選課代碼
     回傳: { analysis, source_count } 或 { no_data: true } 或 { error }
     """
+    # Rate limit 檢查
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    if not _check_rate_limit(ip):
+        return jsonify({'error': '請求過於頻繁，請稍後再試（每分鐘最多 3 次）'}), 429
+
     # 按選課代碼找課程
     course = next(
         (c for c in ALL_COURSES if str(c.get('選課代碼', '')) == course_id),
