@@ -432,8 +432,10 @@ def build():
         completed_courses=PLANNER_COMPLETED_COURSES,
         candidate_courses=_planner_candidates(),
     )
-    # 修正返回首頁連結
-    planner_html = planner_html.replace('href="/"', 'href="index.html"')
+    # 修正 planner.html 中的連結（Flask 路由 → GitHub Pages 相對路徑）
+    planner_html = planner_html.replace('href="/"',          'href="index.html"')
+    planner_html = planner_html.replace('href="/#schedule"', 'href="index.html#schedule"')
+    planner_html = planner_html.replace('href="/planner"',   'href="planner.html"')
 
     with open('docs/planner.html', 'w', encoding='utf-8') as f:
         f.write(planner_html)
