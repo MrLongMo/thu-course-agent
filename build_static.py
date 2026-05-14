@@ -300,102 +300,13 @@ def _planner_candidates():
     return [_planner_course_payload(c) for c in relevant[:160]]
 
 
-# ── fetch 攔截器：靜態模式下攔截所有 /api/* 請求 ──
-FETCH_INTERCEPTOR_TEMPLATE = """
+# ── 靜態資料注入器：注入全域變數供 index.html 靜態模式使用 ──
+# 使用獨特占位符，避免 str.format() 解析 JSON 中的 {} 字元
+STATIC_DATA_INJECTOR = """
 <script>
-/* ── 靜態 Demo 模式：攔截 /api/* 請求，改用本地資料 ── */
-(function () {{
-  const ALL_COURSES = {courses_json};
-
-  /* Demo 課程預填分析資料（5 個不同系所代表性課程） */
-  const DEMO_ANALYSES = {demo_analyses_json};
-
-  /* 解析「上課時間」字串為 slots 陣列，例如 "二/2,3,4" → [{{day:2, periods:[2,3,4], room:""}}] */
-  const DAY_MAP = {{'一':1,'二':2,'三':3,'四':4,'五':5}};
-  function parseTimeSlots(timeText, room) {{
-    if (!timeText) return [];
-    const slots = [];
-    for (const part of timeText.trim().split(/ +/)) {{
-      const m = part.match(/([一二三四五])[/]([0-9,B]+)/);
-      if (m) {{
-        const day     = DAY_MAP[m[1]];
-        const periods = m[2].split(',').filter(Boolean).map(p => isNaN(p) ? p : Number(p));
-        const r       = m[3] || room || '';
-        if (day) slots.push({{ day, periods, room: r }});
-      }}
-    }}
-    return slots;
-  }}
-
-  const _orig = window.fetch.bind(window);
-  window.fetch = function (resource, opts) {{
-    const url = typeof resource === 'string' ? resource : (resource.url || '');
-
-    /* /api/courses?q=...&dept=...&page=...&per_page=... */
-    if (url.startsWith('/api/courses')) {{
-      const p        = new URLSearchParams(url.split('?')[1] || '');
-      const q        = (p.get('q') || '').toLowerCase().trim();
-      const dept     = p.get('dept') || '';
-      const page     = Math.max(1, parseInt(p.get('page')     || '1'));
-      const per_page = Math.min(100, Math.max(1, parseInt(p.get('per_page') || '30')));
-
-      let res = ALL_COURSES;
-      if (dept) res = res.filter(c => c['開課系所名稱'] === dept);
-      if (q)    res = res.filter(c =>
-        (c['課程名稱']  || '').toLowerCase().includes(q) ||
-        (c['授課教師']  || '').toLowerCase().includes(q) ||
-        String(c['選課代碼'] || '').includes(q)
-      );
-
-      const total    = res.length;
-      const start    = (page - 1) * per_page;
-      const courses  = res.slice(start, start + per_page);
-      const payload  = {{ total, page, per_page, courses }};
-      return Promise.resolve({{ ok: true, json: () => Promise.resolve(payload) }});
-    }}
-
-    /* /api/analyze/<id> — Demo 課程回傳預填分析，其他回傳提示訊息 */
-    if (/^[/]api[/]analyze[/]/.test(url)) {{
-      const cid  = url.split('/').pop();
-      const demo = DEMO_ANALYSES[cid];
-      if (demo) {{
-        return Promise.resolve({{ ok: true, json: () => Promise.resolve(demo) }});
-      }}
-      return Promise.resolve({{
-        ok: true,
-        json: () => Promise.resolve({{
-          no_data: false,
-          analysis: '摘要：此為 GitHub Pages 靜態展示版本，AI 搜尋 Dcard 評價功能需要後端伺服器支援。\\n整體傾向：中性\\n難易度：資料不足',
-          source_count: 0,
-          source_note: '📌 靜態 Demo 版本 — AI 分析需後端伺服器（Tavily + Groq）。請在課程卡片中點擊 Demo 課程（C++程式設計、英文作文、統計學、中國文學史、社會工作理論）以查看完整示範分析。',
-          sources: []
-        }})
-      }});
-    }}
-
-    /* /api/course_time/<id> — 從課程資料解析上課時間（支援 Demo 課程） */
-    if (/^[/]api[/]course_time[/]/.test(url)) {{
-      const cid    = url.split('/').pop();
-      const course = ALL_COURSES.find(c => String(c['選課代碼']) === cid);
-      const slots  = course ? parseTimeSlots(course['上課時間'] || '', course['教室'] || '') : [];
-      return Promise.resolve({{ ok: true, json: () => Promise.resolve({{ slots }}) }});
-    }}
-
-    /* /api/siblings/<id> — 從本地資料找同名課程 */
-    if (/^[/]api[/]siblings[/]/.test(url)) {{
-      const cid     = url.split('/').pop();
-      const course  = ALL_COURSES.find(c => String(c['選課代碼']) === cid);
-      const siblings = course
-        ? ALL_COURSES
-            .filter(c => c['課程名稱'] === course['課程名稱'])
-            .map(c => ({{ id: String(c['選課代碼']), teacher: c['授課教師'] || '', name: c['課程名稱'] || '' }}))
-        : [];
-      return Promise.resolve({{ ok: true, json: () => Promise.resolve(siblings) }});
-    }}
-
-    return _orig(resource, opts);
-  }};
-}})();
+/* ── 靜態 Demo 模式：注入課程資料至全域變數，供 fetchCourses() 等函式直接使用 ── */
+window.__STATIC_COURSES  = __COURSES_JSON__;
+window.__STATIC_ANALYSES = __ANALYSES_JSON__;
 </script>
 """
 
@@ -410,18 +321,18 @@ def build():
     # ── 生成 index.html ──
     courses_json       = json.dumps(ALL_COURSES, ensure_ascii=False, separators=(',', ':'))
     demo_analyses_json = json.dumps(DEMO_ANALYSES, ensure_ascii=False, separators=(',', ':'))
-    interceptor = FETCH_INTERCEPTOR_TEMPLATE.format(
-        courses_json=courses_json,
-        demo_analyses_json=demo_analyses_json,
-    )
+
+    # 用 replace() 取代占位符，完全避免 str.format() 解析 JSON 中的 {} 問題
+    injector = STATIC_DATA_INJECTOR \
+        .replace('__COURSES_JSON__', courses_json) \
+        .replace('__ANALYSES_JSON__', demo_analyses_json)
 
     html = env.get_template('index.html').render(departments=DEPARTMENTS)
     # 修正 /planner 連結為相對路徑
     html = html.replace('href="/planner"', 'href="planner.html"')
-    # 將攔截器注入到主 <script> 之前（確保 fetchCourses() 初始化時攔截器已就緒）
+    # 將資料注入器注入到主 <script> 之前
     html = html.replace('\n<script>\n  // ════════════════════════════════\n  //  State',
-                        interceptor + '\n<script>\n  // ════════════════════════════════\n  //  State')
-    # 移除原本的 </body> 替換（攔截器已前置，此行不再需要）
+                        injector + '\n<script>\n  // ════════════════════════════════\n  //  State')
 
     with open('docs/index.html', 'w', encoding='utf-8') as f:
         f.write(html)

@@ -653,11 +653,31 @@
   //  課程列表
   // ════════════════════════════════
   async function fetchCourses() {
-    const params = new URLSearchParams({
-      q: state.q, dept: state.dept, page: state.page, per_page: PER_PAGE
-    });
-    const res  = await fetch(`/api/courses?${params}`);
-    const data = await res.json();
+    let data;
+    if (window.__STATIC_COURSES) {
+      // 靜態模式（GitHub Pages Demo）— 直接使用注入的本地資料
+      const q        = state.q.toLowerCase().trim();
+      const dept     = state.dept;
+      const page     = state.page;
+      const per_page = PER_PAGE;
+      let res = window.__STATIC_COURSES;
+      if (dept) res = res.filter(c => c['開課系所名稱'] === dept);
+      if (q)    res = res.filter(c =>
+        (c['課程名稱']  || '').toLowerCase().includes(q) ||
+        (c['授課教師']  || '').toLowerCase().includes(q) ||
+        String(c['選課代碼'] || '').includes(q)
+      );
+      const total = res.length;
+      const start = (page - 1) * per_page;
+      data = { total, page, per_page, courses: res.slice(start, start + per_page) };
+    } else {
+      // 正常後端模式（Flask）
+      const params = new URLSearchParams({
+        q: state.q, dept: state.dept, page: state.page, per_page: PER_PAGE
+      });
+      const res = await fetch(`/api/courses?${params}`);
+      data = await res.json();
+    }
     state.total = data.total;
     renderCourses(data.courses);
     renderStats(data.total, data.page, data.per_page);
@@ -844,9 +864,16 @@
     btn.textContent = '抓取時間中…';
 
     try {
-      const res = await fetch(`/api/course_time/${cid}`);
-      const data = await res.json();
-      const slots = data.slots || [];
+      let slots = [];
+      if (window.__STATIC_COURSES) {
+        // 靜態模式：本地解析上課時間
+        const course = window.__STATIC_COURSES.find(c => String(c['選課代碼']) === String(cid));
+        slots = course ? parseTimeSlotsStatic(course['上課時間'] || '', course['教室'] || '') : [];
+      } else {
+        const res = await fetch(`/api/course_time/${cid}`);
+        const data = await res.json();
+        slots = data.slots || [];
+      }
 
       // 衝堂檢查
       const conflicts = checkConflict(slots, cid);
@@ -1001,6 +1028,22 @@
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // ── 靜態模式：解析上課時間字串（與 build_static.py 中邏輯一致）──
+  const _STATIC_DAY_MAP = {'一':1,'二':2,'三':3,'四':4,'五':5};
+  function parseTimeSlotsStatic(timeText, room) {
+    if (!timeText) return [];
+    const slots = [];
+    for (const part of timeText.trim().split(/ +/)) {
+      const m = part.match(/([一二三四五])[/]([0-9,B]+)/);
+      if (m) {
+        const day     = _STATIC_DAY_MAP[m[1]];
+        const periods = m[2].split(',').filter(Boolean).map(p => isNaN(p) ? p : Number(p));
+        if (day) slots.push({ day, periods, room: room || '' });
+      }
+    }
+    return slots;
+  }
+
   // ════════════════════════════════
   //  AI 分析
   // ════════════════════════════════
@@ -1028,8 +1071,20 @@
     resultDiv.innerHTML = '<div class="ai-loading">⏳ 正在搜尋 Dcard 評價並分析，請稍候…</div>';
 
     try {
-      const res  = await fetch(`/api/analyze/${courseId}`);
-      const data = await res.json();
+      let data;
+      if (window.__STATIC_ANALYSES) {
+        // 靜態模式：使用預填分析資料
+        data = window.__STATIC_ANALYSES[String(courseId)] || {
+          no_data: false,
+          analysis: '摘要：此為 GitHub Pages 靜態展示版本，AI 搜尋 Dcard 評價功能需要後端伺服器支援。\n整體傾向：中性\n難易度：資料不足',
+          source_count: 0,
+          source_note: '📌 靜態 Demo 版本 — 請點擊 Demo 課程（C++程式設計、英文作文、統計學、中國文學史、社會工作理論）以查看完整示範分析。',
+          sources: []
+        };
+      } else {
+        const res = await fetch(`/api/analyze/${courseId}`);
+        data = await res.json();
+      }
 
       if (data.no_data) {
         // 搜唔到評價，但仍顯示來源
@@ -1086,9 +1141,20 @@
   // openModal 後非同步查同名課程，決定是否顯示比較按鈕
   async function checkSiblings(courseId) {
     try {
-      const res  = await fetch(`/api/siblings/${courseId}`);
-      const data = await res.json();
-      const siblings = data.courses || [];
+      let siblings = [];
+      if (window.__STATIC_COURSES) {
+        // 靜態模式：本地搜尋同名課程
+        const course = window.__STATIC_COURSES.find(c => String(c['選課代碼']) === String(courseId));
+        siblings = course
+          ? window.__STATIC_COURSES
+              .filter(c => c['課程名稱'] === course['課程名稱'])
+              .map(c => ({ id: String(c['選課代碼']), teacher: c['授課教師'] || '', name: c['課程名稱'] || '' }))
+          : [];
+      } else {
+        const res  = await fetch(`/api/siblings/${courseId}`);
+        const data = await res.json();
+        siblings = data.courses || [];
+      }
       if (siblings.length <= 1) return; // 只有一個老師，唔顯示
 
       const wrap = document.getElementById('compareTeachersBtnWrap');
