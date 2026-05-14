@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PickU 修業規劃範本</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+      background: #f5f6fa;
+      color: #222;
+      min-height: 100vh;
+    }
+    header {
+      background: #1a56db;
+      color: #fff;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
+    header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
+    .tab-bar { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(255,255,255,.15);
+      color: #fff;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .tab-btn.active { background: #fff; color: #1a56db; }
+    main { max-width: 1180px; margin: 0 auto; padding: 16px; }
+    .notice {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: .84rem;
+      line-height: 1.55;
+      margin-bottom: 12px;
+    }
+    .toolbar,
+    .panel,
+    .metric,
+    .course-row,
+    .recommend-row {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    label { display: grid; gap: 5px; font-size: .75rem; color: #666; font-weight: 700; }
+    input, select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #d0d7e3;
+      border-radius: 8px;
+      font-size: .9rem;
+      outline: none;
+      background: #fff;
+    }
+    input:focus, select:focus { border-color: #1a56db; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .metric { padding: 14px; }
+    .metric .label { color: #777; font-size: .78rem; font-weight: 700; }
+    .metric .value { font-size: 1.6rem; color: #1a56db; font-weight: 800; margin-top: 4px; }
+    .metric .detail { color: #777; font-size: .78rem; margin-top: 2px; line-height: 1.45; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .panel { padding: 16px; }
+    .panel h2 {
+      font-size: .98rem;
+      color: #1a56db;
+      margin-bottom: 4px;
+    }
+    .panel-desc {
+      color: #777;
+      font-size: .8rem;
+      line-height: 1.55;
+      margin-bottom: 12px;
+    }
+    .gap-row { margin-top: 12px; }
+    .gap-top { display: flex; justify-content: space-between; gap: 8px; font-size: .84rem; font-weight: 700; }
+    .gap-sub { font-size: .76rem; color: #777; margin-top: 4px; }
+    .bar { height: 7px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 7px; }
+    .bar-fill { height: 100%; background: #1a56db; border-radius: 999px; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #eef2ff;
+      color: #3b5bdb;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .tag.ok { background: #e8f5e9; color: #2e7d32; }
+    .tag.warn { background: #fff3e0; color: #e65100; }
+    .tag.danger { background: #fce4ec; color: #c62828; }
+    .recommend-row,
+    .course-row {
+      padding: 12px;
+      border: 1px solid transparent;
+      margin-top: 8px;
+    }
+    .recommend-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .course-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+    .recommend-row:hover,
+    .course-row:hover { border-color: #bfdbfe; }
+    .course-title { font-size: .92rem; font-weight: 800; color: #1a56db; }
+    .course-meta { color: #777; font-size: .77rem; margin-top: 4px; line-height: 1.55; }
+    .reason-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .btn {
+      border: none;
+      background: #1a56db;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn.secondary { background: #fff; color: #1a56db; border: 1.5px solid #1a56db; }
+    .btn.danger { background: #ef4444; }
+    .btn:disabled { background: #ccc; cursor: default; }
+    .search-row {
+      display: grid;
+      grid-template-columns: 1.3fr .8fr .8fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .selected-list { display: grid; gap: 8px; }
+    .selected-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .summary-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+    .summary-box .k { color: #777; font-size: .75rem; font-weight: 700; }
+    .summary-box .v { margin-top: 4px; font-size: .86rem; font-weight: 700; line-height: 1.45; }
+    .empty { color: #999; font-size: .84rem; padding: 14px 0; }
+    @media (max-width: 860px) {
+      .toolbar, .metrics, .layout, .search-row { grid-template-columns: 1fr; }
+      .recommend-row, .course-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>PickU 修業規劃引擎範本</h1>
+    <p>{{ profile.school }} {{ profile.department }} · 企劃書功能展示</p>
+  </div>
+  <div class="tab-bar">
+    <a class="tab-btn" href="/">課程列表</a>
+    <a class="tab-btn" href="/#schedule">週課表</a>
+    <a class="tab-btn active" href="/planner">修業規劃</a>
+  </div>
+</header>
+
+<main>
+  <div class="notice">
+    本頁是根據企劃書製作的展示範本。畢業要求與已修課程使用範本資料，候選課程則取自目前專案內的東海 114-2 課程資料。
+  </div>
+
+  <section class="toolbar">
+    <label>學生範本
+      <input value="{{ profile.school }} / {{ profile.department }}" disabled>
+    </label>
+    <label>年級
+      <select id="yearSelect">
+        <option value="1">大一</option>
+        <option value="2">大二</option>
+        <option value="3" selected>大三</option>
+        <option value="4">大四</option>
+      </select>
+    </label>
+    <label>負荷偏好
+      <select id="workloadSelect">
+        <option value="light">低負荷</option>
+        <option value="balanced" selected>平衡</option>
+        <option value="intensive">可接受高負荷</option>
+      </select>
+    </label>
+    <label>快速操作
+      <button class="btn secondary" type="button" onclick="resetPlanner()">重設範本</button>
+    </label>
+  </section>
+
+  <section class="metrics">
+    <div class="metric">
+      <div class="label">畢業總學分</div>
+      <div class="value" id="totalCreditMetric">0/128</div>
+      <div class="detail" id="remainingMetric">尚缺 0 學分</div>
+    </div>
+    <div class="metric">
+      <div class="label">本學期草案</div>
+      <div class="value" id="selectedMetric">0 門</div>
+      <div class="detail" id="plannedMetric">0 學分已排入</div>
+    </div>
+    <div class="metric">
+      <div class="label">衝堂狀態</div>
+      <div class="value" id="conflictMetric">無</div>
+      <div class="detail" id="conflictDetail">目前草案未偵測到衝堂</div>
+    </div>
+    <div class="metric">
+      <div class="label">推薦候選</div>
+      <div class="value" id="recommendMetric">0 門</div>
+      <div class="detail">規則式排序，保留日後接 API 空間</div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <div class="panel">
+      <h2>修業缺口總覽</h2>
+      <p class="panel-desc">畢業要求加上已修科目與本學期草案，即時計算各類別尚缺學分。</p>
+      <div id="gapPanel"></div>
+    </div>
+
+    <div class="panel">
+      <h2>本學期選課建議</h2>
+      <p class="panel-desc">依學分缺口、課程類別、時段衝突與負荷偏好排序，不呼叫 AI，降低範本頁成本。</p>
+      <div id="recommendPanel"></div>
+    </div>
+  </section>
+
+  <section class="layout" style="margin-top:12px">
+    <div class="panel">
+      <h2>課程搜尋與加入草案</h2>
+      <p class="panel-desc">候選清單使用現有課程資料；可用關鍵字、類別與衝堂狀態過濾。</p>
+      <div class="search-row">
+        <label>關鍵字
+          <input id="searchInput" type="search" placeholder="課名、教師、系所、代碼">
+        </label>
+        <label>學分類別
+          <select id="categorySelect">
+            <option value="all">全部類別</option>
+            <option value="required">系定必修</option>
+            <option value="departmentElective">系選修</option>
+            <option value="generalEducation">通識</option>
+            <option value="freeElective">自由學分</option>
+          </select>
+        </label>
+        <label>衝堂
+          <select id="conflictSelect">
+            <option value="all">全部課程</option>
+            <option value="available">排除衝堂</option>
+          </select>
+        </label>
+      </div>
+      <div id="coursePanel"></div>
+    </div>
+
+    <div class="panel">
+      <h2>AI 摘要示意</h2>
+      <p class="panel-desc">這裡只呈現中性的課程特性，正式版可接回現有 Tavily + Groq 分析。</p>
+      <div id="summaryPanel"></div>
+
+      <div style="height:12px"></div>
+      <h2>本學期課表草案</h2>
+      <p class="panel-desc">加入課程後同步顯示學分、時間與衝堂提示。</p>
+      <div id="selectedPanel" class="selected-list"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const REQUIREMENT = {{ requirement|tojson }};
+  const COMPLETED = {{ completed_courses|tojson }};
+  const COURSES = {{ candidate_courses|tojson }};
+
+  const categoryLabels = {
+    required: '系定必修',
+    departmentElective: '系選修',
+    generalEducation: '通識',
+    freeElective: '自由學分'
+  };
+  const categoryOrder = ['required', 'departmentElective', 'generalEducation', 'freeElective'];
+  const dayLabels = ['', '週一', '週二', '週三', '週四', '週五'];
+  const workloadTarget = { light: 2, balanced: 4, intensive: 6 };
+
+  let selectedIds = [];
+  let activeCourseId = COURSES[0]?.id || '';
+
+  function parseSlots(timeText) {
+    if (!timeText) return [];
+    const dayMap = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5 };
+    const matches = String(timeText).matchAll(/([一二三四五])\/([0-9,]+)/g);
+    return [...matches].map(match => ({
+      day: dayMap[match[1]],
+      periods: match[2].split(',').map(Number).filter(Boolean)
+    })).filter(slot => slot.day && slot.periods.length);
+  }
+
+  function estimateWorkload(course) {
+    const ratio = course.limit > 0 ? course.enrolled / course.limit : 0;
+    return Math.max(1, Math.round((course.credits || 0) + (course.category === 'required' ? 1 : 0) + (ratio > .8 ? 1 : 0)));
+  }
+
+  function courseGoals(course) {
+    const text = `${course.title} ${course.department}`;
+    const goals = [];
+    if (/資料|AI|人工智慧|統計|程式|資訊/.test(text)) goals.push('AI / 資料能力');
+    if (/管理|策略|行銷|組織|創業|服務/.test(text)) goals.push('管理與策略');
+    if (/簡報|溝通|英文|表達|討論/.test(text)) goals.push('溝通表達');
+    if (!goals.length) goals.push('探索興趣');
+    return goals;
+  }
+
+  function selectedCourses() {
+    return selectedIds.map(id => COURSES.find(c => c.id === id)).filter(Boolean);
+  }
+
+  function creditProgress() {
+    const selected = selectedCourses();
+    return categoryOrder.map(category => {
+      const required = REQUIREMENT.categories[category] || 0;
+      const completed = COMPLETED.filter(c => c.category === category).reduce((sum, c) => sum + Number(c.credits || 0), 0);
+      const planned = selected.filter(c => c.category === category).reduce((sum, c) => sum + Number(c.credits || 0), 0);
+      const remainingAfterCompleted = Math.max(required - completed, 0);
+      const remainingAfterPlanned = Math.max(required - completed - planned, 0);
+      const percent = required ? Math.min(100, Math.round((completed + planned) / required * 100)) : 100;
+      return { category, required, completed, planned, remainingAfterCompleted, remainingAfterPlanned, percent };
+    });
+  }
+
+  function courseConflicts(course, selected = selectedCourses()) {
+    const slots = parseSlots(course.timeText);
+    if (!slots.length) return [];
+    const conflicts = [];
+    for (const other of selected) {
+      if (other.id === course.id) continue;
+      const otherSlots = parseSlots(other.timeText);
+      for (const slot of slots) {
+        for (const otherSlot of otherSlots) {
+          if (slot.day !== otherSlot.day) continue;
+          const overlap = slot.periods.filter(p => otherSlot.periods.includes(p));
+          if (overlap.length) {
+            conflicts.push({
+              title: other.title,
+              slot: `${dayLabels[slot.day]} ${overlap.join(',')}`
+            });
+          }
+        }
+      }
+    }
+    return conflicts;
+  }
+
+  function selectedConflicts() {
+    const selected = selectedCourses();
+    const conflicts = [];
+    selected.forEach((course, index) => {
+      selected.slice(index + 1).forEach(other => {
+        courseConflicts(course, [other]).forEach(conflict => {
+          conflicts.push(`${course.title} / ${other.title}：${conflict.slot}`);
+        });
+      });
+    });
+    return conflicts;
+  }
+
+  function recommendations() {
+    const selected = selectedCourses();
+    const progress = creditProgress();
+    const workload = document.getElementById('workloadSelect').value;
+    return COURSES
+      .filter(course => !selectedIds.includes(course.id))
+      .map(course => {
+        let score = 0;
+        const reasons = [];
+        const gap = progress.find(row => row.category === course.category);
+        const conflicts = courseConflicts(course, selected);
+
+        if (gap && gap.remainingAfterPlanned > 0) {
+          score += 42 + Math.min(gap.remainingAfterPlanned, 12);
+          reasons.push(`${categoryLabels[course.category]}仍缺 ${gap.remainingAfterPlanned} 學分`);
+        }
+        if (course.department === '{{ profile.department }}') {
+          score += 16;
+          reasons.push('符合本系修業路徑');
+        }
+        if (/資料|AI|統計|管理|策略|創新|行銷/.test(course.title)) {
+          score += 10;
+          reasons.push('符合企劃書定位');
+        }
+        score += Math.max(0, 12 - Math.abs(estimateWorkload(course) - workloadTarget[workload]) * 4);
+        if (conflicts.length) {
+          score -= 55;
+          reasons.push(`與 ${conflicts[0].title} 衝堂`);
+        } else {
+          score += 8;
+          reasons.push('目前課表無衝堂');
+        }
+        return { course, score, reasons: reasons.slice(0, 3), conflicts };
+      })
+      .sort((a, b) => b.score - a.score || a.course.code.localeCompare(b.course.code))
+      .slice(0, 5);
+  }
+
+  function filteredCourses() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const category = document.getElementById('categorySelect').value;
+    const conflictMode = document.getElementById('conflictSelect').value;
+    const selected = selectedCourses();
+
+    return COURSES.filter(course => {
+      const text = `${course.code} ${course.title} ${course.teacher} ${course.department}`.toLowerCase();
+      if (q && !text.includes(q)) return false;
+      if (category !== 'all' && course.category !== category) return false;
+      if (conflictMode === 'available' && !selectedIds.includes(course.id) && courseConflicts(course, selected).length) return false;
+      return true;
+    }).slice(0, 24);
+  }
+
+  function formatSchedule(course) {
+    return course.timeText || '未取得時間';
+  }
+
+  function escHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function addCourse(id) {
+    if (!selectedIds.includes(id)) selectedIds.push(id);
+    activeCourseId = id;
+    render();
+  }
+
+  function removeCourse(id) {
+    selectedIds = selectedIds.filter(item => item !== id);
+    render();
+  }
+
+  function inspectCourse(id) {
+    activeCourseId = id;
+    renderSummary();
+  }
+
+  function resetPlanner() {
+    selectedIds = [];
+    activeCourseId = COURSES[0]?.id || '';
+    document.getElementById('yearSelect').value = '3';
+    document.getElementById('workloadSelect').value = 'balanced';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('categorySelect').value = 'all';
+    document.getElementById('conflictSelect').value = 'all';
+    render();
+  }
+
+  function renderMetrics() {
+    const selected = selectedCourses();
+    const completedCredits = COMPLETED.reduce((sum, c) => sum + Number(c.credits || 0), 0);
+    const plannedCredits = selected.reduce((sum, c) => sum + Number(c.credits || 0), 0);
+    const remaining = Math.max(REQUIREMENT.totalCredits - completedCredits - plannedCredits, 0);
+    const conflicts = selectedConflicts();
+    const recs = recommendations();
+
+    document.getElementById('totalCreditMetric').textContent = `${completedCredits + plannedCredits}/${REQUIREMENT.totalCredits}`;
+    document.getElementById('remainingMetric').textContent = `尚缺 ${remaining} 學分`;
+    document.getElementById('selectedMetric').textContent = `${selected.length} 門`;
+    document.getElementById('plannedMetric').textContent = `${plannedCredits} 學分已排入`;
+    document.getElementById('conflictMetric').textContent = conflicts.length ? `${conflicts.length} 項` : '無';
+    document.getElementById('conflictDetail').textContent = conflicts[0] || '目前草案未偵測到衝堂';
+    document.getElementById('recommendMetric').textContent = `${recs.length} 門`;
+  }
+
+  function renderGaps() {
+    document.getElementById('gapPanel').innerHTML = creditProgress().map(row => `
+      <div class="gap-row">
+        <div class="gap-top">
+          <span>${categoryLabels[row.category]}</span>
+          <span>${row.completed}+${row.planned}/${row.required} 學分</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:${row.percent}%"></div></div>
+        <div class="gap-sub">原缺口 ${row.remainingAfterCompleted} 學分，草案後尚缺 ${row.remainingAfterPlanned} 學分</div>
+      </div>
+    `).join('');
+  }
+
+  function renderRecommendations() {
+    const recs = recommendations();
+    document.getElementById('recommendPanel').innerHTML = recs.length ? recs.map((item, index) => `
+      <div class="recommend-row">
+        <div>
+          <div class="course-title">#${index + 1} ${escHtml(item.course.title)}</div>
+          <div class="course-meta">${escHtml(item.course.teacher || '未列教師')} · ${categoryLabels[item.course.category]} · ${formatSchedule(item.course)}</div>
+          <div class="reason-list">${item.reasons.map(reason => `<span class="tag">${escHtml(reason)}</span>`).join('')}</div>
+        </div>
+        <div>
+          <button class="btn secondary" type="button" onclick="inspectCourse('${item.course.id}')">查看</button>
+          <button class="btn" type="button" onclick="addCourse('${item.course.id}')">加入</button>
+        </div>
+      </div>
+    `).join('') : '<p class="empty">目前沒有推薦課程</p>';
+  }
+
+  function renderCourses() {
+    const courses = filteredCourses();
+    document.getElementById('coursePanel').innerHTML = courses.length ? courses.map(course => {
+      const selected = selectedIds.includes(course.id);
+      const conflicts = selected ? [] : courseConflicts(course);
+      const ratio = course.limit > 0 ? course.enrolled / course.limit : 0;
+      const capClass = ratio >= 1 ? 'danger' : ratio >= .8 ? 'warn' : 'ok';
+      return `
+        <div class="course-row">
+          <div onclick="inspectCourse('${course.id}')" style="cursor:pointer">
+            <div class="course-title">${escHtml(course.title)}</div>
+            <div class="course-meta">
+              ${escHtml(course.code)} · ${escHtml(course.teacher || '未列教師')} · ${escHtml(course.department)} · ${formatSchedule(course)}
+            </div>
+            <div class="reason-list">
+              <span class="tag">${categoryLabels[course.category]}</span>
+              <span class="tag ${capClass}">${course.enrolled}/${course.limit || '不限'} 人</span>
+              ${conflicts.length ? `<span class="tag danger">與 ${escHtml(conflicts[0].title)} 衝堂</span>` : ''}
+            </div>
+          </div>
+          <div>
+            ${selected
+              ? `<button class="btn danger" type="button" onclick="removeCourse('${course.id}')">移除</button>`
+              : `<button class="btn" type="button" onclick="addCourse('${course.id}')">加入</button>`}
+          </div>
+        </div>
+      `;
+    }).join('') : '<p class="empty">找不到符合條件的課程</p>';
+  }
+
+  function renderSummary() {
+    const course = COURSES.find(c => c.id === activeCourseId) || COURSES[0];
+    if (!course) {
+      document.getElementById('summaryPanel').innerHTML = '<p class="empty">沒有課程資料</p>';
+      return;
+    }
+    const assessment = (course.assessment || [])
+      .slice(0, 4)
+      .map(item => `${item['評分項目'] || '評分'} ${item['配分比例'] || ''}%`)
+      .join('、') || '資料不足';
+    const conflicts = courseConflicts(course, selectedCourses().filter(c => c.id !== course.id));
+    document.getElementById('summaryPanel').innerHTML = `
+      <div class="course-title">${escHtml(course.title)}</div>
+      <div class="course-meta">${escHtml(course.department)} · ${escHtml(course.teacher || '未列教師')} · ${formatSchedule(course)}</div>
+      <div class="summary-grid" style="margin-top:12px">
+        <div class="summary-box"><div class="k">學習負荷</div><div class="v">預估 ${estimateWorkload(course)} 小時/週</div></div>
+        <div class="summary-box"><div class="k">互動形式</div><div class="v">${course.overview ? '講授與討論混合' : '資料不足'}</div></div>
+        <div class="summary-box"><div class="k">評量結構</div><div class="v">${escHtml(assessment)}</div></div>
+        <div class="summary-box"><div class="k">目標匹配</div><div class="v">${courseGoals(course).map(escHtml).join('、')}</div></div>
+      </div>
+      ${conflicts.length ? `<div class="notice" style="margin-top:12px">衝堂提示：與 ${escHtml(conflicts[0].title)} 在 ${escHtml(conflicts[0].slot)} 重疊。</div>` : ''}
+    `;
+  }
+
+  function renderSelected() {
+    const selected = selectedCourses();
+    document.getElementById('selectedPanel').innerHTML = selected.length ? selected.map(course => `
+      <div class="selected-item">
+        <div>
+          <div class="course-title">${escHtml(course.title)}</div>
+          <div class="course-meta">${course.credits} 學分 · ${formatSchedule(course)}</div>
+        </div>
+        <button class="btn danger" type="button" onclick="removeCourse('${course.id}')">移除</button>
+      </div>
+    `).join('') : '<p class="empty">尚未加入任何課程</p>';
+  }
+
+  function render() {
+    renderMetrics();
+    renderGaps();
+    renderRecommendations();
+    renderCourses();
+    renderSummary();
+    renderSelected();
+  }
+
+  document.getElementById('yearSelect').addEventListener('change', render);
+  document.getElementById('workloadSelect').addEventListener('change', render);
+  document.getElementById('searchInput').addEventListener('input', renderCourses);
+  document.getElementById('categorySelect').addEventListener('change', renderCourses);
+  document.getElementById('conflictSelect').addEventListener('change', renderCourses);
+
+  render();
+</script>
+</body>
+</html>
