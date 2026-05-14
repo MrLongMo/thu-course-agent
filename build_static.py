@@ -418,8 +418,10 @@ def build():
     html = env.get_template('index.html').render(departments=DEPARTMENTS)
     # 修正 /planner 連結為相對路徑
     html = html.replace('href="/planner"', 'href="planner.html"')
-    # 在 </body> 前注入攔截器
-    html = html.replace('</body>', interceptor + '\n</body>')
+    # 將攔截器注入到主 <script> 之前（確保 fetchCourses() 初始化時攔截器已就緒）
+    html = html.replace('\n<script>\n  // ════════════════════════════════\n  //  State',
+                        interceptor + '\n<script>\n  // ════════════════════════════════\n  //  State')
+    # 移除原本的 </body> 替換（攔截器已前置，此行不再需要）
 
     with open('docs/index.html', 'w', encoding='utf-8') as f:
         f.write(html)
