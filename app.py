@@ -114,10 +114,35 @@ def analyze_course(course_name: str, teacher_name: str = "") -> dict:
         'sources': source_list,
     }
 
+def _parse_slots_from_json(course):
+    """從課程 JSON 的上課時間字串解析 slots，唔需要爬網站"""
+    raw  = (course.get('上課時間') or '').strip()
+    room = (course.get('教室') or '').strip()
+    if not raw:
+        return []
+    day_map = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5}
+    slots = []
+    for part in re.split(r'\s+', raw):
+        m = re.match(r'([一二三四五])/([0-9,B]+)(?:\[([^\]]*)\])?', part)
+        if m:
+            day = day_map.get(m.group(1))
+            periods = []
+            for p in m.group(2).split(','):
+                p = p.strip()
+                if p == 'B':
+                    periods.append('B')
+                elif p.isdigit():
+                    periods.append(int(p))
+            if day and periods:
+                slots.append({'day': day, 'periods': periods, 'room': m.group(3) or room})
+    return slots
+
+
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
 
 # 啟動時讀取課程資料
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_114_2.json')
+GRAD_DIR  = os.path.join(os.path.dirname(__file__), 'data', 'graduation')
 
 with open(DATA_PATH, encoding='utf-8') as f:
     ALL_COURSES = json.load(f)
@@ -128,6 +153,14 @@ DEPARTMENTS = sorted(set(
     for c in ALL_COURSES
     if c.get('開課系所名稱', '').strip()
 ))
+
+# 課程時間 cache：避免重複爬東海網站
+# key: course_id (str) → value: slots list
+_time_cache = {
+    str(c['選課代碼']): _parse_slots_from_json(c)
+    for c in ALL_COURSES
+    if c.get('上課時間')
+}
 
 
 @app.route('/')
@@ -181,38 +214,51 @@ def api_courses():
 @app.route('/api/course_time/<course_id>')
 def api_course_time(course_id):
     """
-    On-demand 抓東海課程網上課時間
+    查詢課程上課時間
+    優先順序：記憶體 cache → JSON 資料 → 即時爬網站（並存入 cache）
     回傳格式：[{"day": 3, "periods": [6,7], "room": "L205"}]
-    day: 1=一(週一) … 5=五(週五)
     """
+    # 1. cache hit：直接回傳
+    if course_id in _time_cache:
+        return jsonify({'slots': _time_cache[course_id]})
+
+    # 2. JSON 有資料：parse 後存 cache 回傳
+    course = next((c for c in ALL_COURSES if str(c.get('選課代碼', '')) == course_id), None)
+    if course and course.get('上課時間'):
+        slots = _parse_slots_from_json(course)
+        _time_cache[course_id] = slots
+        return jsonify({'slots': slots})
+
+    # 3. fallback：爬東海網站（只在 JSON 未有資料時才用）
     url = f"https://course.thu.edu.tw/view/114/2/{course_id}"
     try:
         r = requests.get(url, timeout=8)
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'lxml')
 
-        # 找「上課時間：三/6,7[L205]」格式的文字
         time_tag = soup.find(string=re.compile(r'上課時間'))
         if not time_tag:
+            _time_cache[course_id] = []
             return jsonify({'slots': []})
 
-        raw = time_tag.strip()
-        # 去掉「上課時間：」前綴
-        raw = re.sub(r'^上課時間：\s*', '', raw)
-
+        raw = re.sub(r'^上課時間：\s*', '', time_tag.strip())
         day_map = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5}
         slots = []
-        # 可能多時段，以空白或逗號分隔：「三/6,7[L205] 五/1,2[...]」
         for part in re.split(r'\s+', raw):
-            # 格式：天/節次[教室] 或 天/節次
-            m = re.match(r'([一二三四五])/([0-9,]+)(?:\[([^\]]*)\])?', part)
+            m = re.match(r'([一二三四五])/([0-9,B]+)(?:\[([^\]]*)\])?', part)
             if m:
                 day = day_map.get(m.group(1))
-                periods = [int(p) for p in m.group(2).split(',') if p]
-                room = m.group(3) or ''
-                if day:
-                    slots.append({'day': day, 'periods': periods, 'room': room})
+                periods = []
+                for p in m.group(2).split(','):
+                    p = p.strip()
+                    if p == 'B':
+                        periods.append('B')
+                    elif p.isdigit():
+                        periods.append(int(p))
+                if day and periods:
+                    slots.append({'day': day, 'periods': periods, 'room': m.group(3) or ''})
 
+        _time_cache[course_id] = slots
         return jsonify({'slots': slots})
     except Exception as e:
         return jsonify({'slots': [], 'error': str(e)}), 500
@@ -258,6 +304,185 @@ def api_siblings(course_id):
     name = course.get('課程名稱', '')
     siblings = [c for c in ALL_COURSES if c.get('課程名稱', '') == name]
     return jsonify({'courses': siblings})
+
+
+@app.route('/api/graduation/analyze', methods=['POST'])
+def api_graduation_analyze():
+    """
+    輸入：自由格式修課紀錄文字（含通識/選修）
+    用 Groq 解析 → 比對畢業要求 → 回傳缺口分析 + 建議
+    """
+    body       = request.get_json(silent=True) or {}
+    dept_code  = body.get('dept', 'BA')
+    year       = int(body.get('year', 114))
+    transcript = body.get('transcript', '').strip()
+
+    if not transcript:
+        return jsonify({'error': '請輸入修課紀錄'}), 400
+
+    path = os.path.join(GRAD_DIR, f'{dept_code.lower()}_{year}.json')
+    if not os.path.exists(path):
+        return jsonify({'error': '尚無此系所資料'}), 404
+    with open(path, encoding='utf-8') as f:
+        grad = json.load(f)
+
+    cats          = grad.get('categories', {})
+    basic_courses = cats.get('基礎課程', {}).get('courses', [])
+    dept_courses  = cats.get('學系必修科目', {}).get('courses', [])
+    all_req_map   = {c['name']: c for c in basic_courses + dept_courses}
+
+    # ── Groq 解析修課紀錄 ──
+    try:
+        _, groq_client = _get_clients()
+        chat = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{
+                "role": "user",
+                "content": (
+                    "從以下台灣大學修課紀錄中提取所有課程資訊，只返回純 JSON，不要有其他文字：\n"
+                    '{"courses":[{"name":"課程名稱","credits":學分數,"grade":"成績"}]}\n'
+                    "學分若不清楚填 0，成績若沒有填空字串。\n\n"
+                    f"修課紀錄：\n{transcript[:3000]}"
+                )
+            }],
+            max_tokens=2000,
+            temperature=0,
+        )
+        raw = chat.choices[0].message.content.strip()
+        # 去除 markdown 代碼塊
+        raw = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw, flags=re.MULTILINE)
+        parsed_courses = json.loads(raw).get('courses', [])
+    except Exception as e:
+        return jsonify({'error': f'AI 解析失敗：{str(e)}'}), 500
+
+    # ── 分類課程 ──
+    required_done  = []   # 已修且符合畢業必修
+    other_done     = []   # 通識 / 選修（不在必修名單內）
+
+    for c in parsed_courses:
+        name    = (c.get('name') or '').strip()
+        credits = c.get('credits', 0) or 0
+        if not name:
+            continue
+
+        if name in all_req_map:
+            # 若 AI 回傳學分為 0，改用畢業規定的學分
+            if credits == 0:
+                credits = all_req_map[name].get('credits', 0)
+            c['credits'] = credits
+            required_done.append(c)
+        elif credits > 0:
+            other_done.append(c)
+
+    req_credits_done   = sum(c.get('credits', 0) for c in required_done)
+    other_credits_done = sum(c.get('credits', 0) for c in other_done)
+
+    # ── 未修必修（只查學系必修，基礎課程通常全修）──
+    done_names = {c['name'] for c in required_done}
+    missing = []
+    for c in dept_courses:
+        if c['name'] in done_names:
+            continue
+        prereq     = c.get('prereq', [])
+        prereq_met = all(p in done_names for p in prereq)
+        available  = [
+            {
+                '選課代碼': co['選課代碼'],
+                '授課教師': co.get('授課教師') or '—',
+                '上課時間': co.get('上課時間') or '—',
+            }
+            for co in ALL_COURSES
+            if co.get('課程名稱') == c['name']
+        ]
+        missing.append({
+            'name':       c['name'],
+            'credits':    c.get('credits', 0),
+            'prereq':     prereq,
+            'prereq_met': prereq_met,
+            'group':      c.get('group', ''),
+            'available':  available,
+        })
+
+    missing.sort(key=lambda x: (not x['prereq_met'], not bool(x['available'])))
+
+    return jsonify({
+        'required_done':      required_done,
+        'other_done':         other_done,
+        'req_credits_done':   req_credits_done,
+        'other_credits_done': other_credits_done,
+        'total_credits_done': req_credits_done + other_credits_done,
+        'missing_required':   missing,
+    })
+
+
+@app.route('/api/graduation/suggestions', methods=['POST'])
+def api_graduation_suggestions():
+    """
+    輸入：已修課程清單
+    輸出：未修必修課 × 本學期開課情況，依可修優先排序
+    """
+    body      = request.get_json(silent=True) or {}
+    dept_code = body.get('dept', 'BA')
+    year      = int(body.get('year', 114))
+    completed = set(body.get('completed', []))
+
+    path = os.path.join(GRAD_DIR, f'{dept_code.lower()}_{year}.json')
+    if not os.path.exists(path):
+        return jsonify({'error': '尚無此系所資料'}), 404
+
+    with open(path, encoding='utf-8') as f:
+        grad = json.load(f)
+
+    dept_courses = grad.get('categories', {}).get('學系必修科目', {}).get('courses', [])
+    suggestions  = []
+
+    for c in dept_courses:
+        if c['name'] in completed:
+            continue
+
+        prereq     = c.get('prereq', [])
+        prereq_met = all(p in completed for p in prereq)
+
+        # 比對本學期開課（課程名稱完全相符）
+        available = [
+            {
+                '選課代碼': co['選課代碼'],
+                '授課教師': co.get('授課教師') or '—',
+                '上課時間': co.get('上課時間') or '—',
+                '學分':     co.get('學分', 0),
+            }
+            for co in ALL_COURSES
+            if co.get('課程名稱') == c['name']
+        ]
+
+        suggestions.append({
+            'name':       c['name'],
+            'credits':    c.get('credits', 0),
+            'semesters':  c.get('semesters', []),
+            'prereq':     prereq,
+            'prereq_met': prereq_met,
+            'group':      c.get('group', ''),
+            'available':  available,
+        })
+
+    # 排序：先修已完成 + 本學期有開課 → 最優先
+    suggestions.sort(key=lambda x: (
+        not x['prereq_met'],
+        not bool(x['available']),
+        -x['credits']
+    ))
+
+    return jsonify({'suggestions': suggestions})
+
+
+@app.route('/api/graduation/<dept_code>/<int:year>')
+def api_graduation(dept_code, year):
+    """返回指定系所、入學學年的畢業規定 JSON"""
+    path = os.path.join(GRAD_DIR, f'{dept_code.lower()}_{year}.json')
+    if not os.path.exists(path):
+        return jsonify({'error': '尚無此系所資料'}), 404
+    with open(path, encoding='utf-8') as f:
+        return jsonify(json.load(f))
 
 
 if __name__ == '__main__':

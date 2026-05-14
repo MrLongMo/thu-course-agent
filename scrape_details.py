@@ -208,6 +208,12 @@ def main():
         else:
             print(f"  [失敗] 略過")
 
+        # 每 100 門存一次（斷點保護，避免意外中斷失去進度）
+        if (done + skipped) % 100 == 0 and done > 0:
+            with open(JSON_PATH, "w", encoding="utf-8") as f:
+                json.dump(courses, f, ensure_ascii=False, indent=2)
+            print(f"  [進度存檔] 已處理 {done + skipped} / {len(targets)}")
+
         # 每次 request 後 delay
         if i + 1 < len(targets):
             time.sleep(DELAY)

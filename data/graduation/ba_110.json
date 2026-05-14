@@ -1,0 +1,59 @@
+{
+  "dept": "企業管理學系",
+  "dept_code": "BA",
+  "apply_from": 110,
+  "total_credits": 128,
+  "required_credits": 96,
+  "elective_credits": 32,
+  "elective_note": "至少修32學分，其中最多15學分可為外系選課",
+  "semester_required": [19, 17, 14, 17, 9, 5, 3, 0],
+  "categories": {
+    "基礎課程": {
+      "courses": [
+        {"name": "中文",             "credits": 4, "semesters": ["大一上","大一下"], "required": true},
+        {"name": "大一英文",         "credits": 6, "semesters": ["大一上","大一下"], "required": true},
+        {"name": "大二英文",         "credits": 4, "semesters": ["大二上","大二下"], "required": true},
+        {"name": "AI應用與程式設計", "credits": 2, "semesters": ["大一上"],          "required": true},
+        {"name": "軍訓",             "credits": 0, "semesters": ["大一上","大一下","大二上","大二下"], "required": true},
+        {"name": "大一體育",         "credits": 0, "semesters": ["大一上","大一下"], "required": true},
+        {"name": "大二體育",         "credits": 0, "semesters": ["大二上","大二下"], "required": true},
+        {"name": "勞作教育",         "credits": 0, "semesters": ["大一上","大一下"], "required": true}
+      ]
+    },
+    "通識必修課程": {
+      "required_credits": 12,
+      "note": "擇取六領域必修人文、自然及社會三領域各一門，至少修習12學分",
+      "domains": ["人文科學","社會科學","自然科學","文明與厚度","情境與美感","通識複合"]
+    },
+    "學系必修科目": {
+      "courses": [
+        {"name": "微積分",         "credits": 6, "semesters": ["大一上","大一下"], "prereq": []},
+        {"name": "企業概論",       "credits": 3, "semesters": ["大一上"],         "prereq": []},
+        {"name": "組織分析(一)",   "credits": 3, "semesters": ["大一上"],         "prereq": []},
+        {"name": "管理學",         "credits": 3, "semesters": ["大一下"],         "prereq": ["企業概論"]},
+        {"name": "統計學(一)",     "credits": 3, "semesters": ["大一下"],         "prereq": []},
+        {"name": "行銷管理",       "credits": 3, "semesters": ["大二上"],         "prereq": ["管理學"]},
+        {"name": "管理會計",       "credits": 3, "semesters": ["大二上"],         "prereq": ["統計學(一)"]},
+        {"name": "人力資源管理",   "credits": 3, "semesters": ["大二上"],         "prereq": ["管理學"]},
+        {"name": "財務管理",       "credits": 3, "semesters": ["大二下"],         "prereq": ["統計學(一)"]},
+        {"name": "管理科學",       "credits": 3, "semesters": ["大二下"],         "prereq": ["統計學(一)"]},
+        {"name": "資訊管理",       "credits": 3, "semesters": ["大二下"],         "prereq": []},
+        {"name": "作業管理",       "credits": 3, "semesters": ["大三上"],         "prereq": ["管理科學"]},
+        {"name": "行銷行為",       "credits": 3, "semesters": ["大三上"],         "prereq": ["行銷管理"], "group": "行銷通路管理組"},
+        {"name": "行銷通路管理",   "credits": 3, "semesters": ["大三上"],         "prereq": ["行銷管理"], "group": "行銷通路管理組"},
+        {"name": "數位行銷",       "credits": 3, "semesters": ["大三下"],         "prereq": ["行銷管理"], "group": "行銷通路管理組"},
+        {"name": "數位服務策略",   "credits": 3, "semesters": ["大三下"],         "prereq": ["行銷管理"], "group": "行銷通路管理組"},
+        {"name": "品牌管理",       "credits": 3, "semesters": ["大四上"],         "prereq": ["行銷管理"], "group": "行銷通路管理組"},
+        {"name": "服務創新與管理", "credits": 3, "semesters": ["大三上"],         "prereq": ["管理學"],  "group": "服務創新與創業組"},
+        {"name": "創新與創業精神", "credits": 3, "semesters": ["大三上"],         "prereq": [],          "group": "服務創新與創業組"},
+        {"name": "服務體驗統計",   "credits": 3, "semesters": ["大三下"],         "prereq": ["統計學(一)"], "group": "服務創新與創業組"},
+        {"name": "商業模式設計",   "credits": 3, "semesters": ["大三下"],         "prereq": [],          "group": "服務創新與創業組"},
+        {"name": "創新與創業實習", "credits": 3, "semesters": ["大四上"],         "prereq": [],          "group": "服務創新與創業組"},
+        {"name": "企業政策",       "credits": 3, "semesters": ["大四上"],         "prereq": ["行銷管理","財務管理","人力資源管理","作業管理"]},
+        {"name": "企業倫理",       "credits": 3, "semesters": ["大四上"],         "prereq": []}
+      ]
+    }
+  },
+  "source_url": "https://ba.thu.edu.tw/Course/必修科目表(110學年度起適用)/",
+  "last_updated": "2026-05-14"
+}
