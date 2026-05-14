@@ -129,10 +129,167 @@ DEPARTMENTS = sorted(set(
     if c.get('開課系所名稱', '').strip()
 ))
 
+PLANNER_REQUIREMENT = {
+    'totalCredits': 128,
+    'categories': {
+        'required': 64,
+        'departmentElective': 30,
+        'generalEducation': 28,
+        'freeElective': 6,
+    }
+}
+
+PLANNER_PROFILE = {
+    'school': '東海大學',
+    'department': '企業管理學系',
+    'year': 3,
+    'workloadPreference': 'balanced',
+}
+
+PLANNER_COMPLETED_COURSES = [
+    {'id': 'done-001', 'title': '管理學', 'category': 'required', 'credits': 3},
+    {'id': 'done-002', 'title': '經濟學（一）', 'category': 'required', 'credits': 3},
+    {'id': 'done-003', 'title': '經濟學（二）', 'category': 'required', 'credits': 3},
+    {'id': 'done-004', 'title': '會計學（一）', 'category': 'required', 'credits': 3},
+    {'id': 'done-005', 'title': '會計學（二）', 'category': 'required', 'credits': 3},
+    {'id': 'done-006', 'title': '統計學（一）', 'category': 'required', 'credits': 3},
+    {'id': 'done-007', 'title': '行銷管理', 'category': 'required', 'credits': 3},
+    {'id': 'done-008', 'title': '組織行為', 'category': 'required', 'credits': 3},
+    {'id': 'done-009', 'title': '商業英文簡報', 'category': 'departmentElective', 'credits': 3},
+    {'id': 'done-010', 'title': '服務業管理', 'category': 'departmentElective', 'credits': 3},
+    {'id': 'done-011', 'title': '創業管理', 'category': 'departmentElective', 'credits': 3},
+    {'id': 'done-012', 'title': '數位行銷概論', 'category': 'departmentElective', 'credits': 3},
+    {'id': 'done-013', 'title': '人文與科技', 'category': 'generalEducation', 'credits': 2},
+    {'id': 'done-014', 'title': '公民社會', 'category': 'generalEducation', 'credits': 2},
+    {'id': 'done-015', 'title': '自然科學導論', 'category': 'generalEducation', 'credits': 2},
+    {'id': 'done-016', 'title': '藝術欣賞', 'category': 'generalEducation', 'credits': 2},
+    {'id': 'done-017', 'title': '體育與健康', 'category': 'generalEducation', 'credits': 2},
+    {'id': 'done-018', 'title': '跨域自主學習', 'category': 'freeElective', 'credits': 4},
+]
+
+
+def _planner_category(course):
+    """將現有課程欄位映射到修業規劃範本使用的學分類別。"""
+    dept = course.get('開課系所名稱', '')
+    required_type = str(course.get('必選修', '')).replace('.0', '')
+
+    if '通識' in dept or dept in {'大一英文', '大一大二體育', '第二外國語'}:
+        return 'generalEducation'
+    if dept == PLANNER_PROFILE['department']:
+        return 'required' if required_type == '1' else 'departmentElective'
+    return 'freeElective'
+
+
+def _planner_priority(course):
+    """讓示範候選課程優先顯示企劃書提到的管理、資料、AI、創新相關課。"""
+    title = course.get('課程名稱', '')
+    dept = course.get('開課系所名稱', '')
+    keywords = ('資料', 'AI', '人工智慧', '統計', '管理', '策略', '創新', '行銷', '專題', '設計')
+    score = 0
+    if dept == PLANNER_PROFILE['department']:
+        score += 100
+    if any(keyword in title for keyword in keywords):
+        score += 30
+    if course.get('上課時間'):
+        score += 10
+    return score
+
+
+def _planner_course_payload(course):
+    """前端修業規劃頁需要的輕量課程資料。"""
+    return {
+        'id': str(course.get('選課代碼', '')),
+        'code': str(course.get('選課代碼', '')),
+        'title': course.get('課程名稱', ''),
+        'department': course.get('開課系所名稱', ''),
+        'teacher': course.get('授課教師', ''),
+        'category': _planner_category(course),
+        'credits': course.get('學分') or 0,
+        'enrolled': course.get('選課人數') or 0,
+        'limit': course.get('上限人數') or 0,
+        'timeText': course.get('上課時間', ''),
+        'room': course.get('教室', ''),
+        'overview': course.get('課程概述', ''),
+        'assessment': course.get('評分方式', []),
+    }
+
+
+def _planner_candidates():
+    """限制候選清單大小，避免範本頁載入整份課程資料。"""
+    relevant = [
+        c for c in ALL_COURSES
+        if c.get('開課系所名稱') == PLANNER_PROFILE['department']
+        or '通識' in c.get('開課系所名稱', '')
+        or c.get('開課系所名稱') in {'資訊工程學系', '工業工程與經營資訊學系', '大一英文'}
+    ]
+    relevant.sort(key=_planner_priority, reverse=True)
+    return [_planner_course_payload(c) for c in relevant[:160]]
+
+
+def _is_management_demo_course(course):
+    """判斷是否使用管理學截圖用示範分析。"""
+    return (
+        course.get('開課系所名稱') == '企業管理學系'
+        and course.get('課程名稱') == '管理學'
+    )
+
+
+def _demo_management_analysis(course):
+    """在沒有 API key 時，提供管理學截圖用的中性 AI 分析範本。"""
+    teacher_name = course.get('授課教師', '').strip() or '授課教師'
+    course_id = str(course.get('選課代碼', ''))
+    assessments = course.get('評分方式') or []
+    assessment_text = '、'.join(
+        f"{item.get('評分項目')} {item.get('配分比例')}%"
+        for item in assessments
+        if item.get('評分項目') and item.get('配分比例')
+    ) or '期中、期末與課堂參與'
+
+    teacher_notes = {
+        '黃櫻美': '評量結構以期中考、期末考、期末報告、小考與出席組成，適合希望用穩定考試節奏掌握管理基礎的學生。',
+        '張譽騰': '評量同時包含考試、小組作業、期末報告與課堂參與，課程可能較重視團隊討論與應用表達。',
+        '吳祉芸': '評量包含期中期末、小組任務與課程參與，課堂互動與任務完成度在成績中占比較高。',
+    }
+    note = teacher_notes.get(
+        teacher_name,
+        '課程以管理理論與實務應用並重，適合作為企業管理學系低年級核心基礎課程。'
+    )
+
+    return {
+        'analysis': (
+            f"摘要：{teacher_name} 的管理學示範分析依官方課程綱要與評分方式整理。"
+            "課程定位為管理基礎課，內容涵蓋企業組織運作、管理理論與實務案例，"
+            "並透過資料蒐集、報告製作或課堂參與訓練團隊合作與邏輯表達。"
+            f"{note} 評分方式包含 {assessment_text}。\n"
+            "整體傾向：中性\n"
+            "難易度：3/5（屬於基礎必修課，概念門檻不高，但需要固定準備考試、完成報告或小組任務）"
+        ),
+        'source_count': 0,
+        'source_note': '示範結果：依官方課程綱要與評分方式生成，未使用 Tavily / Groq API',
+        'sources': [
+            {
+                'title': f"東海課程綱要：管理學（{teacher_name}）",
+                'url': f"https://course.thu.edu.tw/view/114/2/{course_id}",
+            }
+        ],
+        'demo': True,
+    }
+
 
 @app.route('/')
 def index():
     return render_template('index.html', departments=DEPARTMENTS)
+
+
+@app.route('/planner')
+def planner():
+    return render_template(
+        'planner.html',
+        profile=PLANNER_PROFILE,
+        requirement=PLANNER_REQUIREMENT,
+        completed_courses=PLANNER_COMPLETED_COURSES,
+        candidate_courses=_planner_candidates(),
+    )
 
 
 @app.route('/api/courses')
@@ -235,6 +392,11 @@ def api_analyze(course_id):
 
     course_name = course.get('課程名稱', '')
     teacher_name = course.get('授課教師', '').strip()
+
+    # 截圖展示用：管理學先回傳固定示範分析，避免本機缺 API key 時無法展示。
+    if _is_management_demo_course(course):
+        return jsonify(_demo_management_analysis(course))
+
     try:
         result = analyze_course(course_name, teacher_name)
         return jsonify(result)
@@ -256,7 +418,14 @@ def api_siblings(course_id):
         return jsonify({'error': '找不到課程'}), 404
 
     name = course.get('課程名稱', '')
-    siblings = [c for c in ALL_COURSES if c.get('課程名稱', '') == name]
+    if _is_management_demo_course(course):
+        dept = course.get('開課系所名稱', '')
+        siblings = [
+            c for c in ALL_COURSES
+            if c.get('課程名稱', '') == name and c.get('開課系所名稱', '') == dept
+        ]
+    else:
+        siblings = [c for c in ALL_COURSES if c.get('課程名稱', '') == name]
     return jsonify({'courses': siblings})
 
 

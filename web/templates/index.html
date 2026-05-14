@@ -552,6 +552,7 @@
     <div class="tab-bar">
       <button class="tab-btn active" id="tabList" onclick="switchTab('list')">課程列表</button>
       <button class="tab-btn" id="tabSched" onclick="switchTab('schedule')">週課表</button>
+      <a class="tab-btn" href="/planner" style="text-decoration:none">修業規劃</a>
     </div>
   </div>
 </header>
@@ -1050,7 +1051,8 @@
       // 解析 Groq 輸出的三段文字
       const lines = data.analysis.split('\n').filter(l => l.trim());
       let html = `<div class="ai-result">`;
-      html += `<p style="font-size:.75rem;color:#aaa;margin-bottom:8px">參考 ${data.source_count} 筆 Dcard 貼文</p>`;
+      const sourceNote = data.source_note || `參考 ${data.source_count} 筆 Dcard 貼文`;
+      html += `<p style="font-size:.75rem;color:#aaa;margin-bottom:8px">${escHtml(sourceNote)}</p>`;
       for (const line of lines) {
         if (line.startsWith('摘要：')) {
           html += `<p><span class="ai-label">📝 摘要</span><br>${escHtml(line.replace('摘要：', '').trim())}</p>`;
@@ -1181,6 +1183,7 @@
 
   // ── Init ──
   fetchCourses();
+  if (window.location.hash === '#schedule') switchTab('schedule');
 </script>
 </body>
 </html>
