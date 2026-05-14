@@ -1009,6 +1009,9 @@
       {% endfor %}
     </select>
   </div>
+  <div style="padding:8px 16px 0;font-size:.78rem;color:#6b7280">
+    💡 點擊課程卡片可查看詳情及 ✨ AI 評價；加入課表後至「週課表」Tab 查看
+  </div>
   <div class="stats" id="statsBar">載入中…</div>
   <div class="grid" id="courseGrid"></div>
   <div class="pagination" id="pagination"></div>
@@ -1018,7 +1021,7 @@
 <div id="scheduleView">
   <div class="selected-list">
     <h2>已選課程</h2>
-    <div id="selectedList"><p class="empty-hint">尚未加入任何課程</p></div>
+    <div id="selectedList"><p class="empty-hint">尚未加入任何課程<br><span style="font-size:.75rem;color:#aaa;font-weight:400">← 在「課程列表」點擊課程，再按「加入課表」</span></p></div>
   </div>
 
   <div class="timetable-wrap">
@@ -1224,6 +1227,7 @@
           ${enrollTag}
           ${c['必選修'] ? typeTag(c['必選修']) : ''}
           ${isSelected ? '<span class="tag" style="background:#dcfce7;color:#166534">✓ 已選</span>' : ''}
+          <span class="tag" style="background:#f5f3ff;color:#6d28d9">✨ AI 評價</span>
         </div>
         ${limit > 0 ? `
         <div class="enroll-bar">
