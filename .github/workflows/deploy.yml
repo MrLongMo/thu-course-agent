@@ -34,6 +34,9 @@ jobs:
       - name: Freeze Flask app
         run: python app.py freeze
 
+      - name: List build directory
+        run: ls -la build/
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
