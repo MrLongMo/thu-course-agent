@@ -32,7 +32,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Freeze Flask app
-        run: python app.py freeze
+        run: |
+          export FREEZER_DESTINATION=build
+          python app.py freeze
 
       - name: List build directory
         run: ls -la build/
