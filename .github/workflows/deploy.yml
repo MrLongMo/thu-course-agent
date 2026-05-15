@@ -31,6 +31,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Test import
+        run: python -c "from flask_frozen import Freezer; print('Frozen-Flask imported')"
+
       - name: Freeze Flask app
         run: |
           export FREEZER_DESTINATION=build
