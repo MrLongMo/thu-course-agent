@@ -10,6 +10,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, jsonify, request
 from dotenv import load_dotenv
+from flask_frozen import Freezer
 
 load_dotenv()
 
@@ -155,6 +156,9 @@ def _parse_slots_from_json(course):
 
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
 
+# Flask-Frozen for static generation
+freezer = Freezer(app)
+
 # 啟動時讀取課程資料
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_114_2.json')
 GRAD_DIR  = os.path.join(os.path.dirname(__file__), 'data', 'graduation')
@@ -177,6 +181,10 @@ _time_cache = {
     if c.get('上課時間')
 }
 
+
+@freezer.register_generator
+def index_generator():
+    yield '/'
 
 @app.route('/')
 def index():
@@ -506,5 +514,8 @@ def api_graduation(dept_code, year):
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5001))
-    app.run(host='0.0.0.0', port=port)
+    if len(os.sys.argv) > 1 and os.sys.argv[1] == 'freeze':
+        freezer.freeze()
+    else:
+        port = int(os.environ.get('PORT', 5001))
+        app.run(host='0.0.0.0', port=port)
