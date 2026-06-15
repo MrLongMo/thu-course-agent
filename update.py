@@ -25,10 +25,10 @@ BASE_DIR    = Path(__file__).parent
 PROCESSED   = BASE_DIR / 'data' / 'processed'
 APP_PY      = BASE_DIR / 'app.py'
 DELAY       = 1  # 爬蟲每次 request 間隔秒數
-THU_XLS_URL = "https://course.thu.edu.tw/course/{year}/{sem}/xcls.xls"
+THU_XLS_URL = "https://course.thu.edu.tw/opendatadownload/list/{year}/{sem}/"
 THU_COURSE  = "https://course.thu.edu.tw/view/{year}/{sem}/{cid}"
 
-REQUIRED_FIELDS = ['課程概述', '評分方式', '授課教師', '上課時間']
+REQUIRED_FIELDS = ['授課教師', '上課時間']
 
 
 # ── 1. 下載 XLS ──────────────────────────────────────────
@@ -62,16 +62,23 @@ def parse_xls(xls_path, year, semester):
     rename = {
         '選課代碼': '選課代碼', '課程名稱': '課程名稱',
         '開課系所名稱': '開課系所名稱', '必選修': '必選修',
-        '學分2': '學分', '學分1': '學分',
     }
     for old, new in rename.items():
         if old in df.columns and new not in df.columns:
             df.rename(columns={old: new}, inplace=True)
 
+    # 學分：取 學分1 和 學分2 中較大者（某學期只有其中一欄有值）
+    if '學分' not in df.columns:
+        c1 = pd.to_numeric(df.get('學分1', 0), errors='coerce').fillna(0)
+        c2 = pd.to_numeric(df.get('學分2', 0), errors='coerce').fillna(0)
+        df['學分'] = c1.combine(c2, max).astype(int)
+
     # 保留必要欄位
     keep = ['選課代碼', '課程名稱', '開課系所名稱', '必選修', '學分']
     keep = [c for c in keep if c in df.columns]
     df   = df[keep].dropna(subset=['選課代碼', '課程名稱'])
+    # 過濾欄位錯位的垃圾行（選課代碼非純數字）
+    df   = df[df['選課代碼'].astype(str).str.match(r'^\d+$')]
     df['選課代碼'] = df['選課代碼'].astype(int)
 
     courses = df.to_dict(orient='records')
@@ -150,70 +157,64 @@ def update_app_py(year, semester):
     print(f'      完成！重啟 app.py 後生效')
 
 
-# ── HTML 解析輔助函數 ────────────────────────────────────
+# ── HTML 解析輔助函數（適配東海 2025+ 新版頁面）────────────
 
-def _get_section_text(soup, title):
-    h2 = soup.find('h2', string=title)
-    if not h2:
+def _card_body_for_label(soup, label_text):
+    """找 h6 label 對應的 card-body"""
+    h6 = soup.find('h6', string=label_text)
+    if not h6:
         return None
-    parts = []
-    for sib in h2.find_next_siblings():
-        if sib.name == 'h2':
-            break
-        text = sib.get_text(separator='\n', strip=True)
-        if text:
-            parts.append(text)
-    return '\n'.join(parts) if parts else None
-
-
-def _get_grading_table(soup):
-    h2 = soup.find('h2', string='評分方式')
-    if not h2:
-        return None
-    tbl = h2.find_next('table')
-    if not tbl:
-        return None
-    rows    = tbl.find_all('tr')
-    headers = [th.get_text(strip=True) for th in rows[0].find_all(['th', 'td'])] if rows else []
-    result  = []
-    for row in rows[1:]:
-        cells = [td.get_text(strip=True) for td in row.find_all(['th', 'td'])]
-        if any(cells):
-            result.append(dict(zip(headers, cells)))
-    return result or None
+    return h6.find_parent(class_=lambda c: c and 'card-body' in c)
 
 
 def _get_teacher(soup):
-    for p in soup.find_all('p'):
-        text = p.get_text()
-        if '授課教師：' in text:
-            a = p.find('a')
-            if a:
-                return a.get_text(strip=True) or None
-            m = re.search(r'授課教師：([^\s<\n]+)', text)
-            if m:
-                return m.group(1).strip()
+    card = _card_body_for_label(soup, '授課教師')
+    if card:
+        a = card.find('a', href=lambda h: h and 'teacher-profile' in h)
+        if a:
+            return a.get_text(strip=True) or None
     return None
 
 
 def _get_class_time(soup):
-    for p in soup.find_all('p'):
-        text = p.get_text(separator='\n')
-        if '上課時間：' not in text:
-            continue
-        m = re.search(r'上課時間：(.+?)(?:\n|$)', text)
-        if not m:
-            continue
-        raw     = m.group(1).strip()
-        bracket = re.search(r'\[(.+?)\]', raw)
-        if bracket:
-            return raw[:bracket.start()].strip()
-        m2 = re.match(r'([\d一二三四五六日/,B]+)\s+(.+)', raw)
-        return m2.group(1).strip() if m2 else raw
+    card = _card_body_for_label(soup, '上課時間')
+    if card:
+        badges = card.find_all(class_=lambda c: c and 'badge' in c)
+        times = [b.get_text(strip=True) for b in badges if b.get_text(strip=True)]
+        if times:
+            # 只取日期/節次部分（去掉教室資訊）
+            result = []
+            for t in times:
+                m = re.match(r'([一二三四五六日\d/,B]+)', t)
+                result.append(m.group(1) if m else t)
+            return ' '.join(result)
     return None
 
 
 def _get_classroom(soup):
+    card = _card_body_for_label(soup, '上課時間')
+    if card:
+        badges = card.find_all(class_=lambda c: c and 'badge' in c)
+        for b in badges:
+            text = b.get_text(strip=True)
+            bracket = re.search(r'\[(.+?)\]', text)
+            if bracket:
+                return bracket.group(1).strip()
+    return None
+
+
+def _get_section_text(soup, title):
+    # 新版：授課大綱在 modal 裡動態載入，無法靜態爬
+    return None
+
+
+def _get_grading_table(soup):
+    # 新版：評分方式在 modal 裡動態載入，無法靜態爬
+    return None
+
+
+def _get_classroom_old(soup):
+    # 保留舊版 fallback（未用）
     for p in soup.find_all('p'):
         text = p.get_text(separator='\n')
         if '上課時間：' not in text:

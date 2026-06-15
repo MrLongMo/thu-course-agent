@@ -10,7 +10,6 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, jsonify, request
 from dotenv import load_dotenv
-from flask_frozen import Freezer
 
 load_dotenv()
 
@@ -156,21 +155,22 @@ def _parse_slots_from_json(course):
 
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
 
-# Flask-Frozen for static generation
-freezer = Freezer(app)
-
 # 啟動時讀取課程資料
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_114_2.json')
+DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_115_1.json')
 GRAD_DIR  = os.path.join(os.path.dirname(__file__), 'data', 'graduation')
+
+# 從檔名抽出學年學期，供 fallback 爬蟲使用
+_m = re.search(r'courses_(\d+)_(\d+)\.json', DATA_PATH)
+CURRENT_YEAR, CURRENT_SEM = (_m.group(1), _m.group(2)) if _m else ('114', '2')
 
 with open(DATA_PATH, encoding='utf-8') as f:
     ALL_COURSES = json.load(f)
 
 # 整理所有系所列表（去空值、排序）
 DEPARTMENTS = sorted(set(
-    c.get('開課系所名稱', '').strip()
+    str(c.get('開課系所名稱', '') or '').strip()
     for c in ALL_COURSES
-    if c.get('開課系所名稱', '').strip()
+    if str(c.get('開課系所名稱', '') or '').strip()
 ))
 
 # 課程時間 cache：避免重複爬東海網站
@@ -182,13 +182,10 @@ _time_cache = {
 }
 
 
-@freezer.register_generator
-def index_generator():
-    yield '/'
-
 @app.route('/')
 def index():
-    return render_template('index.html', departments=DEPARTMENTS)
+    return render_template('index.html', departments=DEPARTMENTS,
+                           current_year=CURRENT_YEAR, current_sem=CURRENT_SEM)
 
 
 @app.route('/api/courses')
@@ -253,7 +250,7 @@ def api_course_time(course_id):
         return jsonify({'slots': slots})
 
     # 3. fallback：爬東海網站（只在 JSON 未有資料時才用）
-    url = f"https://course.thu.edu.tw/view/114/2/{course_id}"
+    url = f"https://course.thu.edu.tw/view/{CURRENT_YEAR}/{CURRENT_SEM}/{course_id}"
     try:
         r = requests.get(url, timeout=8)
         r.encoding = 'utf-8'
@@ -314,6 +311,38 @@ def api_analyze(course_id):
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': f'分析失敗：{str(e)}'}), 500
+
+
+@app.route('/api/enrollment/<course_id>')
+def api_enrollment(course_id):
+    """
+    即時查詢課程名額（上限 / 現選 / 餘額）
+    資料來源：東海課程網官方 API（real-time）
+    """
+    import re as _re
+    url = (
+        f"https://course.thu.edu.tw/api/course-list"
+        f"?year={CURRENT_YEAR}&term={CURRENT_SEM}&keyword={course_id}"
+    )
+    try:
+        r = requests.get(url, timeout=8)
+        data = r.json()
+        # 找 course code 完全符合的那行（strip html 後比對）
+        for row in data.get('data', []):
+            code = _re.sub(r'<[^>]+>', '', row[0]).strip().lstrip('0') or '0'
+            if code == str(int(course_id)):
+                status_html = row[5]
+                cap  = _re.search(r'上限\s*(\d+)', status_html)
+                enr  = _re.search(r'現選\s*(\d+)', status_html)
+                left = _re.search(r'餘額\s*(\d+)', status_html)
+                return jsonify({
+                    'capacity':  int(cap.group(1))  if cap  else None,
+                    'enrolled':  int(enr.group(1))  if enr  else None,
+                    'remaining': int(left.group(1)) if left else None,
+                })
+        return jsonify({'error': '找不到課程名額資料'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/siblings/<course_id>')
@@ -514,8 +543,5 @@ def api_graduation(dept_code, year):
 
 
 if __name__ == '__main__':
-    if len(os.sys.argv) > 1 and os.sys.argv[1] == 'freeze':
-        freezer.freeze()
-    else:
-        port = int(os.environ.get('PORT', 5001))
-        app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port)

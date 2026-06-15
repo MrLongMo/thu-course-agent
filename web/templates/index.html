@@ -986,7 +986,7 @@
 <header>
   <div>
     <h1>東海大學選課助手</h1>
-    <p>114學年度 第二學期 · 共 {{ departments|length }} 個系所 · 資料僅供參考，選課請以官方系統為準</p>
+    <p>{{ current_year }}學年度 第{{ current_sem }}學期 · 共 {{ departments|length }} 個系所 · 資料僅供參考，選課請以官方系統為準</p>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span class="credits-badge" id="creditsBadge">已選 0 學分</span>
@@ -1110,7 +1110,7 @@
       <div style="width:32px;height:32px;border-radius:9px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">🎯</div>
       <div>
         <h2 style="margin:0">這學期建議選修</h2>
-        <p class="sp-sub" style="margin:2px 0 0">根據你的已修科目，比對本學期（114-2）開課情況</p>
+        <p class="sp-sub" style="margin:2px 0 0">根據你的已修科目，比對本學期（{{ current_year }}-{{ current_sem }}）開課情況</p>
       </div>
     </div>
     <div id="suggestionContent"><p class="sug-empty">分析成績單後，建議清單將自動生成</p></div>
@@ -1206,33 +1206,17 @@
   }
 
   function cardHTML(c) {
-    const enrolled = c['選課人數'] ?? 0;
-    const limit    = c['上限人數']  ?? 0;
-    const ratio    = limit > 0 ? enrolled / limit : 0;
-    const pct      = Math.min(100, Math.round(ratio * 100));
-    const fillColor = ratio >= 1 ? '#ef4444' : ratio >= .8 ? '#f97316' : '#22c55e';
-    const enrollTag = ratio >= 1
-      ? `<span class="tag full">爆滿 ${enrolled}/${limit}</span>`
-      : ratio >= .8
-        ? `<span class="tag warn">${enrolled}/${limit}</span>`
-        : `<span class="tag ok">${enrolled}/${limit}</span>`;
     const isSelected = !!selectedCourses[c['選課代碼']];
-
     return `
       <div class="card${isSelected ? ' selected' : ''}">
         <div class="card-title">${escHtml(c['課程名稱'] || '—')}</div>
         <div class="card-dept">${escHtml(c['開課系所名稱'] || '')}</div>
         <div class="card-meta">
           <span class="tag">📚 ${c['學分'] ?? '—'} 學分</span>
-          ${enrollTag}
           ${c['必選修'] ? typeTag(c['必選修']) : ''}
           ${isSelected ? '<span class="tag" style="background:#dcfce7;color:#166534">✓ 已選</span>' : ''}
           <span class="tag" style="background:#f5f3ff;color:#6d28d9">✨ AI 評價</span>
         </div>
-        ${limit > 0 ? `
-        <div class="enroll-bar">
-          <div class="enroll-fill" style="width:${pct}%;background:${fillColor}"></div>
-        </div>` : ''}
       </div>`;
   }
 
@@ -1270,10 +1254,8 @@
   // ════════════════════════════════
   async function openModal(c) {
     modalCourse = c;
-    const enrolled = c['選課人數'] ?? 0;
-    const limit    = c['上限人數']  ?? 0;
-    const grades   = c['評分方式'];
-    const overview = c['課程概述'];
+    const grades     = c['評分方式'];
+    const overview   = c['課程概述'];
     const isSelected = !!selectedCourses[c['選課代碼']];
 
     let gradesHTML = '';
@@ -1295,9 +1277,12 @@
     document.getElementById('modalContent').innerHTML = `
       <div class="modal-title">${escHtml(c['課程名稱']||'')}</div>
       <div class="modal-dept">${escHtml(c['開課系所名稱']||'')} · 選課代碼 ${c['選課代碼']||'—'}</div>
-      <div class="card-meta" style="margin-top:12px;flex-wrap:wrap;display:flex;gap:6px">
+      <div class="card-meta" style="margin-top:12px;flex-wrap:wrap;display:flex;gap:6px;align-items:center">
         <span class="tag">📚 ${c['學分']??'—'} 學分</span>
-        <span class="tag">👥 ${enrolled} / ${limit} 人</span>
+        <span class="tag" id="enrollBadge" style="min-width:80px">👥 查詢中…</span>
+        <div id="enrollBar" class="enroll-bar" style="width:100%;display:none">
+          <div id="enrollFill" class="enroll-fill" style="width:0%"></div>
+        </div>
         ${c['必選修'] ? typeTag(c['必選修']) : ''}
       </div>
       <div class="modal-section" style="margin-top:12px">
@@ -1334,7 +1319,7 @@
         <div class="compare-grid" id="compareGrid"></div>
       </div>
       <a class="add-btn syllabus-btn"
-        href="https://course.thu.edu.tw/view/114/2/${c['選課代碼']}"
+        href="https://course.thu.edu.tw/view/{{ current_year }}/{{ current_sem }}/${c['選課代碼']}"
         target="_blank" rel="noopener noreferrer">
         📄 課程綱要
       </a>
@@ -1344,7 +1329,7 @@
       </button>
     `;
     overlay.classList.add('open');
-    // 非同步查同名課程，決定是否顯示「比較所有老師」按鈕
+    fetchEnrollment(c['選課代碼']);
     checkSiblings(c['選課代碼']);
   }
 
@@ -1683,6 +1668,46 @@
   }
 
   // ════════════════════════════════
+  //  即時名額查詢
+  // ════════════════════════════════
+  async function fetchEnrollment(cid) {
+    try {
+      const res  = await fetch(`/api/enrollment/${cid}`);
+      const d    = await res.json();
+      const badge = document.getElementById('enrollBadge');
+      const bar   = document.getElementById('enrollBar');
+      const fill  = document.getElementById('enrollFill');
+      if (!badge) return;
+
+      if (d.error || d.capacity == null) {
+        badge.textContent = '👥 —';
+        return;
+      }
+
+      const { capacity, enrolled, remaining } = d;
+      const ratio   = capacity > 0 ? enrolled / capacity : 0;
+      const pct     = Math.min(100, Math.round(ratio * 100));
+      const isFull  = remaining === 0;
+      const isWarn  = !isFull && ratio >= 0.8;
+      const color   = isFull ? '#ef4444' : isWarn ? '#f97316' : '#22c55e';
+
+      badge.className  = `tag ${isFull ? 'full' : isWarn ? 'warn' : 'ok'}`;
+      badge.textContent = isFull
+        ? `👥 爆滿 ${enrolled}/${capacity}`
+        : `👥 餘 ${remaining} · ${enrolled}/${capacity}`;
+
+      if (bar && fill && capacity > 0) {
+        bar.style.display = '';
+        fill.style.width  = `${pct}%`;
+        fill.style.background = color;
+      }
+    } catch(e) {
+      const badge = document.getElementById('enrollBadge');
+      if (badge) badge.textContent = '👥 —';
+    }
+  }
+
+  // ════════════════════════════════
   //  比較所有老師
   // ════════════════════════════════
 
@@ -1849,10 +1874,9 @@
     }
   }
 
-  // 學期常數（對應 courses_114_2.json）
   const SEM_NAMES    = ['大一上','大一下','大二上','大二下','大三上','大三下','大四上','大四下'];
-  const CURRENT_YEAR = 114;
-  const CURRENT_SEM  = 2;
+  const CURRENT_YEAR = {{ current_year }};
+  const CURRENT_SEM  = {{ current_sem }};
 
   function calcCredits() {
     if (!gradData) return { basic: 0, dept: 0, ge: 0, total: 0 };
@@ -2322,7 +2346,7 @@
   margin-top:32px;
 ">
   <div>⚠️ 非東海大學官方系統，本工具由學生獨立開發，與學校無關</div>
-  <div>📚 課程資料來源：東海大學公開選課系統（114-2），資料如有異動以學校官方公告為準</div>
+  <div>📚 課程資料來源：東海大學公開選課系統（{{ current_year }}-{{ current_sem }}），資料如有異動以學校官方公告為準</div>
   <div>🤖 Dcard 評價摘要由 AI 生成，不保證準確，不提供選課服務，選課結果請以學校官方系統為準</div>
 </footer>
 </body>
