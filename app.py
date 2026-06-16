@@ -186,6 +186,7 @@ def _parse_slots_from_json(course):
 
 
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
+app.json.ensure_ascii = False
 
 # 啟動時讀取課程資料
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_115_1.json')
@@ -600,9 +601,9 @@ def api_stats():
     con.close()
 
     return jsonify({
-        'total_events': total_events,
-        'top_departments': [{'name': d, 'count': c} for d, c in top_depts],
-        'top_analyzed_courses': [{'name': d, 'count': c} for d, c in top_courses],
+        '總事件數': total_events,
+        '最多人搜尋的系所': [{'系所': d, '次數': c} for d, c in top_depts],
+        '最多人AI分析的課程': [{'課程': d, '次數': c} for d, c in top_courses],
     })
 
 
