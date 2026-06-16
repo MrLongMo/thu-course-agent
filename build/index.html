@@ -9,21 +9,20 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-      background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #f0f9ff 100%);
-      background-attachment: fixed;
+      background: #f5f6fa;
       color: #222;
       min-height: 100vh;
     }
 
     /* ── Header ── */
     header {
-      background: linear-gradient(135deg, #6d28d9 0%, #1a56db 60%, #0ea5e9 100%);
+      background: #1a56db;
       color: #fff;
       padding: 16px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 4px 24px rgba(109,40,217,.25);
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -49,7 +48,7 @@
       color: #fff;
       transition: background .15s;
     }
-    .tab-btn.active { background: #fff; color: #6d28d9; }
+    .tab-btn.active { background: #fff; color: #1a56db; }
 
     /* ── Credits badge ── */
     .credits-badge {
@@ -105,27 +104,18 @@
 
     /* ── Card ── */
     .card {
-      background: rgba(255,255,255,.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,.9);
-      border-radius: 16px;
+      background: #fff;
+      border-radius: 12px;
       padding: 16px;
-      box-shadow: 0 2px 12px rgba(109,40,217,.06);
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
       display: flex;
       flex-direction: column;
       gap: 8px;
       cursor: pointer;
-      transition: box-shadow .25s, transform .2s;
+      transition: box-shadow .2s, transform .15s;
     }
-    .card:hover {
-      box-shadow: 0 8px 32px rgba(109,40,217,.18), 0 0 0 1px rgba(109,40,217,.12);
-      transform: translateY(-3px);
-    }
-    .card.selected {
-      border: 2px solid #6d28d9;
-      box-shadow: 0 4px 20px rgba(109,40,217,.2);
-    }
+    .card:hover { box-shadow: 0 4px 16px rgba(26,86,219,.13); transform: translateY(-2px); }
+    .card.selected { border: 2px solid #1a56db; }
 
     .card-title {
       font-size: .97rem;
@@ -996,7 +986,7 @@
 <header>
   <div>
     <h1>東海大學選課助手</h1>
-    <p>{{ current_year }}學年度 第{{ current_sem }}學期 · 共 {{ departments|length }} 個系所 · 資料僅供參考，選課請以官方系統為準</p>
+    <p>114學年度 第二學期 · 共 86 個系所 · 資料僅供參考，選課請以官方系統為準</p>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span class="credits-badge" id="creditsBadge">已選 0 學分</span>
@@ -1014,9 +1004,179 @@
     <input id="searchInput" type="search" placeholder="搜尋課程名稱、教師、選課代碼…" autocomplete="off">
     <select id="deptSelect">
       <option value="">全部系所</option>
-      {% for dept in departments %}
-      <option value="{{ dept }}">{{ dept }}</option>
-      {% endfor %}
+      
+      <option value="中國文學系">中國文學系</option>
+      
+      <option value="中文課程">中文課程</option>
+      
+      <option value="企業管理學系">企業管理學系</option>
+      
+      <option value="全民國防教育選修">全民國防教育選修</option>
+      
+      <option value="公共事務在職專班">公共事務在職專班</option>
+      
+      <option value="創意設計暨藝術學院">創意設計暨藝術學院</option>
+      
+      <option value="化學工程與材料工程學系">化學工程與材料工程學系</option>
+      
+      <option value="化學系">化學系</option>
+      
+      <option value="博雅學士學位學程">博雅學士學位學程</option>
+      
+      <option value="哲學系">哲學系</option>
+      
+      <option value="哲學系碩士在職專班">哲學系碩士在職專班</option>
+      
+      <option value="國際企業管理碩士學位學程">國際企業管理碩士學位學程</option>
+      
+      <option value="國際學院">國際學院</option>
+      
+      <option value="國際學院不分系英語學士班">國際學院不分系英語學士班</option>
+      
+      <option value="國際經營管理學位學程">國際經營管理學位學程</option>
+      
+      <option value="國際經營與貿易學系">國際經營與貿易學系</option>
+      
+      <option value="外國語文學系">外國語文學系</option>
+      
+      <option value="多元學習課程(共同選修)">多元學習課程(共同選修)</option>
+      
+      <option value="大一大二體育">大一大二體育</option>
+      
+      <option value="大一英文">大一英文</option>
+      
+      <option value="大二英文">大二英文</option>
+      
+      <option value="工學院">工學院</option>
+      
+      <option value="工學院工程管理碩士在職專班">工學院工程管理碩士在職專班</option>
+      
+      <option value="工業工程與經營資訊學系">工業工程與經營資訊學系</option>
+      
+      <option value="工業工程與經營資訊碩士專班">工業工程與經營資訊碩士專班</option>
+      
+      <option value="工業設計學系">工業設計學系</option>
+      
+      <option value="工業設計學系碩士在職專班">工業設計學系碩士在職專班</option>
+      
+      <option value="師資培育中心課程">師資培育中心課程</option>
+      
+      <option value="建築學系">建築學系</option>
+      
+      <option value="應用物理學系">應用物理學系</option>
+      
+      <option value="政治學系">政治學系</option>
+      
+      <option value="教育研究所">教育研究所</option>
+      
+      <option value="教育研究所碩士在職專班">教育研究所碩士在職專班</option>
+      
+      <option value="數位創新碩士學位學程">數位創新碩士學位學程</option>
+      
+      <option value="文學院">文學院</option>
+      
+      <option value="日文課程">日文課程</option>
+      
+      <option value="日本語言文化學系">日本語言文化學系</option>
+      
+      <option value="景觀學系">景觀學系</option>
+      
+      <option value="景觀系碩士班在職專班">景觀系碩士班在職專班</option>
+      
+      <option value="智慧暨精緻農業學位學程">智慧暨精緻農業學位學程</option>
+      
+      <option value="智慧計算暨應用數學系">智慧計算暨應用數學系</option>
+      
+      <option value="會計學系">會計學系</option>
+      
+      <option value="歷史學系">歷史學系</option>
+      
+      <option value="永續科學與管理學士學位學程">永續科學與管理學士學位學程</option>
+      
+      <option value="法律學系">法律學系</option>
+      
+      <option value="法律學系碩士在職專班">法律學系碩士在職專班</option>
+      
+      <option value="法律學院">法律學院</option>
+      
+      <option value="理學院">理學院</option>
+      
+      <option value="環境科學與工程學系">環境科學與工程學系</option>
+      
+      <option value="生命科學系">生命科學系</option>
+      
+      <option value="生物多樣性國際研究生博士學位學程">生物多樣性國際研究生博士學位學程</option>
+      
+      <option value="生醫暨材料科學國際博士學位學程">生醫暨材料科學國際博士學位學程</option>
+      
+      <option value="畜產與生物科技學系">畜產與生物科技學系</option>
+      
+      <option value="社會學系">社會學系</option>
+      
+      <option value="社會工作學系">社會工作學系</option>
+      
+      <option value="社會科學院">社會科學院</option>
+      
+      <option value="程式思維與生成式AI">程式思維與生成式AI</option>
+      
+      <option value="第二外國語">第二外國語</option>
+      
+      <option value="管理學院">管理學院</option>
+      
+      <option value="統計學系">統計學系</option>
+      
+      <option value="經濟學系">經濟學系</option>
+      
+      <option value="美術學系">美術學系</option>
+      
+      <option value="美術系碩士在職專班">美術系碩士在職專班</option>
+      
+      <option value="華語文教學國際碩士學位學程">華語文教學國際碩士學位學程</option>
+      
+      <option value="行政管理暨政策學系">行政管理暨政策學系</option>
+      
+      <option value="表演藝術與創作碩士學位學程">表演藝術與創作碩士學位學程</option>
+      
+      <option value="財務金融學系">財務金融學系</option>
+      
+      <option value="資訊工程學系">資訊工程學系</option>
+      
+      <option value="資訊工程學系在職專班">資訊工程學系在職專班</option>
+      
+      <option value="資訊管理學系">資訊管理學系</option>
+      
+      <option value="跨域創新學院">跨域創新學院</option>
+      
+      <option value="農業暨健康學院">農業暨健康學院</option>
+      
+      <option value="通識課程:人文領域">通識課程:人文領域</option>
+      
+      <option value="通識課程:永續實踐領域">通識課程:永續實踐領域</option>
+      
+      <option value="通識課程:社會領域">通識課程:社會領域</option>
+      
+      <option value="通識課程:自然領域">通識課程:自然領域</option>
+      
+      <option value="選修英文">選修英文</option>
+      
+      <option value="電機工程學系">電機工程學系</option>
+      
+      <option value="音樂學系">音樂學系</option>
+      
+      <option value="食品科學系">食品科學系</option>
+      
+      <option value="餐旅管理學系">餐旅管理學系</option>
+      
+      <option value="餐旅管理學系在職專班">餐旅管理學系在職專班</option>
+      
+      <option value="體育課程(進修部)">體育課程(進修部)</option>
+      
+      <option value="體育選修課程">體育選修課程</option>
+      
+      <option value="高階經營管理專班">高階經營管理專班</option>
+      
+      <option value="高齡健康與運動科學學士學位學程">高齡健康與運動科學學士學位學程</option>
+      
     </select>
   </div>
   <div style="padding:8px 16px 0;font-size:.78rem;color:#6b7280">
@@ -1120,7 +1280,7 @@
       <div style="width:32px;height:32px;border-radius:9px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">🎯</div>
       <div>
         <h2 style="margin:0">這學期建議選修</h2>
-        <p class="sp-sub" style="margin:2px 0 0">根據你的已修科目，比對本學期（{{ current_year }}-{{ current_sem }}）開課情況</p>
+        <p class="sp-sub" style="margin:2px 0 0">根據你的已修科目，比對本學期（114-2）開課情況</p>
       </div>
     </div>
     <div id="suggestionContent"><p class="sug-empty">分析成績單後，建議清單將自動生成</p></div>
@@ -1216,17 +1376,33 @@
   }
 
   function cardHTML(c) {
+    const enrolled = c['選課人數'] ?? 0;
+    const limit    = c['上限人數']  ?? 0;
+    const ratio    = limit > 0 ? enrolled / limit : 0;
+    const pct      = Math.min(100, Math.round(ratio * 100));
+    const fillColor = ratio >= 1 ? '#ef4444' : ratio >= .8 ? '#f97316' : '#22c55e';
+    const enrollTag = ratio >= 1
+      ? `<span class="tag full">爆滿 ${enrolled}/${limit}</span>`
+      : ratio >= .8
+        ? `<span class="tag warn">${enrolled}/${limit}</span>`
+        : `<span class="tag ok">${enrolled}/${limit}</span>`;
     const isSelected = !!selectedCourses[c['選課代碼']];
+
     return `
       <div class="card${isSelected ? ' selected' : ''}">
         <div class="card-title">${escHtml(c['課程名稱'] || '—')}</div>
         <div class="card-dept">${escHtml(c['開課系所名稱'] || '')}</div>
         <div class="card-meta">
           <span class="tag">📚 ${c['學分'] ?? '—'} 學分</span>
+          ${enrollTag}
           ${c['必選修'] ? typeTag(c['必選修']) : ''}
           ${isSelected ? '<span class="tag" style="background:#dcfce7;color:#166534">✓ 已選</span>' : ''}
-          <span class="tag" style="background:linear-gradient(90deg,#ede9fe,#dbeafe);color:#5b21b6;border:1px solid rgba(109,40,217,.15)">✨ AI 評價</span>
+          <span class="tag" style="background:#f5f3ff;color:#6d28d9">✨ AI 評價</span>
         </div>
+        ${limit > 0 ? `
+        <div class="enroll-bar">
+          <div class="enroll-fill" style="width:${pct}%;background:${fillColor}"></div>
+        </div>` : ''}
       </div>`;
   }
 
@@ -1264,8 +1440,10 @@
   // ════════════════════════════════
   async function openModal(c) {
     modalCourse = c;
-    const grades     = c['評分方式'];
-    const overview   = c['課程概述'];
+    const enrolled = c['選課人數'] ?? 0;
+    const limit    = c['上限人數']  ?? 0;
+    const grades   = c['評分方式'];
+    const overview = c['課程概述'];
     const isSelected = !!selectedCourses[c['選課代碼']];
 
     let gradesHTML = '';
@@ -1287,12 +1465,9 @@
     document.getElementById('modalContent').innerHTML = `
       <div class="modal-title">${escHtml(c['課程名稱']||'')}</div>
       <div class="modal-dept">${escHtml(c['開課系所名稱']||'')} · 選課代碼 ${c['選課代碼']||'—'}</div>
-      <div class="card-meta" style="margin-top:12px;flex-wrap:wrap;display:flex;gap:6px;align-items:center">
+      <div class="card-meta" style="margin-top:12px;flex-wrap:wrap;display:flex;gap:6px">
         <span class="tag">📚 ${c['學分']??'—'} 學分</span>
-        <span class="tag" id="enrollBadge" style="min-width:80px">👥 查詢中…</span>
-        <div id="enrollBar" class="enroll-bar" style="width:100%;display:none">
-          <div id="enrollFill" class="enroll-fill" style="width:0%"></div>
-        </div>
+        <span class="tag">👥 ${enrolled} / ${limit} 人</span>
         ${c['必選修'] ? typeTag(c['必選修']) : ''}
       </div>
       <div class="modal-section" style="margin-top:12px">
@@ -1329,7 +1504,7 @@
         <div class="compare-grid" id="compareGrid"></div>
       </div>
       <a class="add-btn syllabus-btn"
-        href="https://course.thu.edu.tw/view/{{ current_year }}/{{ current_sem }}/${c['選課代碼']}"
+        href="https://course.thu.edu.tw/view/114/2/${c['選課代碼']}"
         target="_blank" rel="noopener noreferrer">
         📄 課程綱要
       </a>
@@ -1339,7 +1514,7 @@
       </button>
     `;
     overlay.classList.add('open');
-    fetchEnrollment(c['選課代碼']);
+    // 非同步查同名課程，決定是否顯示「比較所有老師」按鈕
     checkSiblings(c['選課代碼']);
   }
 
@@ -1678,46 +1853,6 @@
   }
 
   // ════════════════════════════════
-  //  即時名額查詢
-  // ════════════════════════════════
-  async function fetchEnrollment(cid) {
-    try {
-      const res  = await fetch(`/api/enrollment/${cid}`);
-      const d    = await res.json();
-      const badge = document.getElementById('enrollBadge');
-      const bar   = document.getElementById('enrollBar');
-      const fill  = document.getElementById('enrollFill');
-      if (!badge) return;
-
-      if (d.error || d.capacity == null) {
-        badge.textContent = '👥 —';
-        return;
-      }
-
-      const { capacity, enrolled, remaining } = d;
-      const ratio   = capacity > 0 ? enrolled / capacity : 0;
-      const pct     = Math.min(100, Math.round(ratio * 100));
-      const isFull  = remaining === 0;
-      const isWarn  = !isFull && ratio >= 0.8;
-      const color   = isFull ? '#ef4444' : isWarn ? '#f97316' : '#22c55e';
-
-      badge.className  = `tag ${isFull ? 'full' : isWarn ? 'warn' : 'ok'}`;
-      badge.textContent = isFull
-        ? `👥 爆滿 ${enrolled}/${capacity}`
-        : `👥 餘 ${remaining} · ${enrolled}/${capacity}`;
-
-      if (bar && fill && capacity > 0) {
-        bar.style.display = '';
-        fill.style.width  = `${pct}%`;
-        fill.style.background = color;
-      }
-    } catch(e) {
-      const badge = document.getElementById('enrollBadge');
-      if (badge) badge.textContent = '👥 —';
-    }
-  }
-
-  // ════════════════════════════════
   //  比較所有老師
   // ════════════════════════════════
 
@@ -1884,9 +2019,10 @@
     }
   }
 
+  // 學期常數（對應 courses_114_2.json）
   const SEM_NAMES    = ['大一上','大一下','大二上','大二下','大三上','大三下','大四上','大四下'];
-  const CURRENT_YEAR = {{ current_year }};
-  const CURRENT_SEM  = {{ current_sem }};
+  const CURRENT_YEAR = 114;
+  const CURRENT_SEM  = 2;
 
   function calcCredits() {
     if (!gradData) return { basic: 0, dept: 0, ge: 0, total: 0 };
@@ -2356,7 +2492,7 @@
   margin-top:32px;
 ">
   <div>⚠️ 非東海大學官方系統，本工具由學生獨立開發，與學校無關</div>
-  <div>📚 課程資料來源：東海大學公開選課系統（{{ current_year }}-{{ current_sem }}），資料如有異動以學校官方公告為準</div>
+  <div>📚 課程資料來源：東海大學公開選課系統（114-2），資料如有異動以學校官方公告為準</div>
   <div>🤖 Dcard 評價摘要由 AI 生成，不保證準確，不提供選課服務，選課結果請以學校官方系統為準</div>
 </footer>
 </body>
