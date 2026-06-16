@@ -4,6 +4,7 @@ THU 選課輔助工具 - Flask 主程式
 import json
 import os
 import re
+import sqlite3
 import time
 import requests
 from collections import defaultdict
@@ -12,6 +13,37 @@ from flask import Flask, render_template, jsonify, request
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ── 使用統計：記錄搜尋/AI分析事件到本機 SQLite ──
+DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'analytics.db')
+
+def _init_db():
+    con = sqlite3.connect(DB_PATH)
+    con.execute('''
+        CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT NOT NULL,
+            detail TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    con.commit()
+    con.close()
+
+def log_event(event_type: str, detail: str = ''):
+    """寫入一筆事件記錄，唔影響主流程（失敗就靜默忽略）"""
+    try:
+        con = sqlite3.connect(DB_PATH)
+        con.execute(
+            'INSERT INTO events (event_type, detail) VALUES (?, ?)',
+            (event_type, detail)
+        )
+        con.commit()
+        con.close()
+    except Exception:
+        pass
+
+_init_db()
 
 # ── Rate limiting：每個 IP 每分鐘最多 3 次 AI 分析 ──
 _rate_store: dict = defaultdict(list)
@@ -156,7 +188,7 @@ def _parse_slots_from_json(course):
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
 
 # 啟動時讀取課程資料
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_114_2.json')
+DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'courses_115_1.json')
 GRAD_DIR  = os.path.join(os.path.dirname(__file__), 'data', 'graduation')
 
 with open(DATA_PATH, encoding='utf-8') as f:
@@ -164,9 +196,9 @@ with open(DATA_PATH, encoding='utf-8') as f:
 
 # 整理所有系所列表（去空值、排序）
 DEPARTMENTS = sorted(set(
-    c.get('開課系所名稱', '').strip()
+    str(c.get('開課系所名稱', '')).strip()
     for c in ALL_COURSES
-    if c.get('開課系所名稱', '').strip()
+    if str(c.get('開課系所名稱', '')).strip() not in ('', 'nan')
 ))
 
 # 課程時間 cache：避免重複爬東海網站
@@ -217,6 +249,9 @@ def api_courses():
     start = (page - 1) * per_page
     end = start + per_page
     page_data = results[start:end]
+
+    if dept:
+        log_event('search_dept', dept)
 
     return jsonify({
         'total': total,
@@ -303,6 +338,7 @@ def api_analyze(course_id):
     teacher_name = course.get('授課教師', '').strip()
     try:
         result = analyze_course(course_name, teacher_name)
+        log_event('ai_analyze', course_name)
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': f'分析失敗：{str(e)}'}), 500
@@ -503,6 +539,34 @@ def api_graduation(dept_code, year):
         return jsonify({'error': '尚無此系所資料'}), 404
     with open(path, encoding='utf-8') as f:
         return jsonify(json.load(f))
+
+
+@app.route('/api/stats')
+def api_stats():
+    """返回使用統計（最多搜尋嘅系所、熱門課程，需要 token 驗證）"""
+    token = request.args.get('token', '')
+    if token != os.getenv('STATS_TOKEN', ''):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    con = sqlite3.connect(DB_PATH)
+    top_depts = con.execute('''
+        SELECT detail, COUNT(*) as cnt FROM events
+        WHERE event_type = 'search_dept'
+        GROUP BY detail ORDER BY cnt DESC LIMIT 10
+    ''').fetchall()
+    top_courses = con.execute('''
+        SELECT detail, COUNT(*) as cnt FROM events
+        WHERE event_type = 'ai_analyze'
+        GROUP BY detail ORDER BY cnt DESC LIMIT 10
+    ''').fetchall()
+    total_events = con.execute('SELECT COUNT(*) FROM events').fetchone()[0]
+    con.close()
+
+    return jsonify({
+        'total_events': total_events,
+        'top_departments': [{'name': d, 'count': c} for d, c in top_depts],
+        'top_analyzed_courses': [{'name': d, 'count': c} for d, c in top_courses],
+    })
 
 
 if __name__ == '__main__':
