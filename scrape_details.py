@@ -30,7 +30,9 @@ REQUIRED_FIELDS = ["課程概述", "評分方式", "授課教師", "上課時間
 
 def get_section_text(soup, title):
     """抽取指定 h2 區塊內的純文字（到下一個 h2 為止）"""
-    h2 = soup.find("h2", string=title)
+    # 網站部分課程用「教育目標」代替「課程概述」
+    candidates = [title, '教育目標'] if title == '課程概述' else [title]
+    h2 = next((soup.find('h2', string=t) for t in candidates if soup.find('h2', string=t)), None)
     if not h2:
         return None
     parts = []

@@ -9,20 +9,21 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-      background: #f5f6fa;
+      background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #f0f9ff 100%);
+      background-attachment: fixed;
       color: #222;
       min-height: 100vh;
     }
 
     /* ── Header ── */
     header {
-      background: #1a56db;
+      background: linear-gradient(135deg, #6d28d9 0%, #1a56db 60%, #0ea5e9 100%);
       color: #fff;
       padding: 16px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      box-shadow: 0 4px 24px rgba(109,40,217,.25);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -48,7 +49,7 @@
       color: #fff;
       transition: background .15s;
     }
-    .tab-btn.active { background: #fff; color: #1a56db; }
+    .tab-btn.active { background: #fff; color: #6d28d9; }
 
     /* ── Credits badge ── */
     .credits-badge {
@@ -104,18 +105,27 @@
 
     /* ── Card ── */
     .card {
-      background: #fff;
-      border-radius: 12px;
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 16px;
       padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      box-shadow: 0 2px 12px rgba(109,40,217,.06);
       display: flex;
       flex-direction: column;
       gap: 8px;
       cursor: pointer;
-      transition: box-shadow .2s, transform .15s;
+      transition: box-shadow .25s, transform .2s;
     }
-    .card:hover { box-shadow: 0 4px 16px rgba(26,86,219,.13); transform: translateY(-2px); }
-    .card.selected { border: 2px solid #1a56db; }
+    .card:hover {
+      box-shadow: 0 8px 32px rgba(109,40,217,.18), 0 0 0 1px rgba(109,40,217,.12);
+      transform: translateY(-3px);
+    }
+    .card.selected {
+      border: 2px solid #6d28d9;
+      box-shadow: 0 4px 20px rgba(109,40,217,.2);
+    }
 
     .card-title {
       font-size: .97rem;
@@ -1227,7 +1237,7 @@
           ${enrollTag}
           ${c['必選修'] ? typeTag(c['必選修']) : ''}
           ${isSelected ? '<span class="tag" style="background:#dcfce7;color:#166534">✓ 已選</span>' : ''}
-          <span class="tag" style="background:#f5f3ff;color:#6d28d9">✨ AI 評價</span>
+          <span class="tag" style="background:linear-gradient(90deg,#ede9fe,#dbeafe);color:#5b21b6;border:1px solid rgba(109,40,217,.15)">✨ AI 評價</span>
         </div>
         ${limit > 0 ? `
         <div class="enroll-bar">

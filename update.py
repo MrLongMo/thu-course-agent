@@ -25,7 +25,7 @@ BASE_DIR    = Path(__file__).parent
 PROCESSED   = BASE_DIR / 'data' / 'processed'
 APP_PY      = BASE_DIR / 'app.py'
 DELAY       = 1  # 爬蟲每次 request 間隔秒數
-THU_XLS_URL = "https://course.thu.edu.tw/course/{year}/{sem}/xcls.xls"
+THU_XLS_URL = "https://course.thu.edu.tw/opendatadownload/list/{year}/{sem}/"
 THU_COURSE  = "https://course.thu.edu.tw/view/{year}/{sem}/{cid}"
 
 REQUIRED_FIELDS = ['課程概述', '評分方式', '授課教師', '上課時間']
@@ -56,7 +56,7 @@ def parse_xls(xls_path, year, semester):
     dest = PROCESSED / f'courses_{year}_{semester}.json'
     print(f'[2/4] Parse XLS → {dest.name}')
 
-    df = pd.read_csv(str(xls_path), encoding='big5', on_bad_lines='skip')
+    df = pd.read_csv(str(xls_path), encoding='cp950', on_bad_lines='skip')
 
     # 統一欄位命名
     rename = {
@@ -72,6 +72,8 @@ def parse_xls(xls_path, year, semester):
     keep = ['選課代碼', '課程名稱', '開課系所名稱', '必選修', '學分']
     keep = [c for c in keep if c in df.columns]
     df   = df[keep].dropna(subset=['選課代碼', '課程名稱'])
+    # 過濾掉非數字的壞 row
+    df   = df[pd.to_numeric(df['選課代碼'], errors='coerce').notna()]
     df['選課代碼'] = df['選課代碼'].astype(int)
 
     courses = df.to_dict(orient='records')
@@ -153,7 +155,9 @@ def update_app_py(year, semester):
 # ── HTML 解析輔助函數 ────────────────────────────────────
 
 def _get_section_text(soup, title):
-    h2 = soup.find('h2', string=title)
+    # 網站部分課程用「教育目標」代替「課程概述」
+    candidates = [title, '教育目標'] if title == '課程概述' else [title]
+    h2 = next((soup.find('h2', string=t) for t in candidates if soup.find('h2', string=t)), None)
     if not h2:
         return None
     parts = []
