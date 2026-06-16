@@ -1,0 +1,329 @@
+{
+  "dept": "農業暨健康學院食品科學系",
+  "dept_code": "620",
+  "apply_from": "114",
+  "total_credits": 128,
+  "required_credits": 90,
+  "elective_credits": 38,
+  "elective_note": "",
+  "semester_required": [
+    11,
+    11,
+    16,
+    15,
+    9,
+    11,
+    5,
+    0
+  ],
+  "categories": {
+    "基礎課程": {
+      "courses": [
+        {
+          "name": "中文",
+          "credits": 4,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一英文",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大二英文",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "required": true
+        },
+        {
+          "name": "程式思維與生成式AI",
+          "credits": 2,
+          "semesters": [
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        },
+        {
+          "name": "大二體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        }
+      ]
+    },
+    "通識必修科目": {
+      "required_credits": 12,
+      "note": "通識四領域合計至少12學分：永續實踐領域2學分必修，人文、自然、社會三領域至少各一門課",
+      "domains": [
+        "人文領域",
+        "社會領域",
+        "自然領域",
+        "永續實踐領域"
+      ]
+    },
+    "學系必修科目": {
+      "courses": [
+        {
+          "name": "基礎微積分",
+          "credits": 3,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品科學概論",
+          "credits": 3,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "微生物學",
+          "credits": 3,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "微生物學實驗",
+          "credits": 1,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "管理學",
+          "credits": 3,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "有機化學",
+          "credits": 3,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "有機化學實驗",
+          "credits": 1,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "生物統計學",
+          "credits": 3,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "生物化學（一）",
+          "credits": 3,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "生物化學實驗",
+          "credits": 1,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品衛生安全與法規",
+          "credits": 2,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "分析化學",
+          "credits": 3,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "分析化學實驗",
+          "credits": 1,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品加工（一）",
+          "credits": 3,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "生物化學（二）",
+          "credits": 3,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品工程",
+          "credits": 4,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品微生物",
+          "credits": 2,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品微生物實驗",
+          "credits": 1,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品加工（二）",
+          "credits": 3,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品加工實驗（一）",
+          "credits": 1,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品加工實驗（二）",
+          "credits": 1,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品化學",
+          "credits": 3,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品分析",
+          "credits": 3,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品分析實驗",
+          "credits": 1,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "專題討論",
+          "credits": 1,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品創新實務（一）",
+          "credits": 1,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "食品創新實務（二）",
+          "credits": 2,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "專題研究（一）",
+          "credits": 2,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "專題研究（二）",
+          "credits": 1,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "營養學",
+          "credits": 3,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        }
+      ]
+    }
+  },
+  "source_url": "https://fsis.thu.edu.tw/wwwstud/info/MustList.php（majr=620, year=114, stype=A）",
+  "last_updated": null
+}

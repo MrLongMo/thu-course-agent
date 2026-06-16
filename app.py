@@ -569,6 +569,25 @@ def api_graduation_suggestions():
     return jsonify({'suggestions': suggestions})
 
 
+@app.route('/api/graduation/depts')
+def api_graduation_depts():
+    """列出有畢業規定資料嘅系所（code + 名稱 + 可選學年）"""
+    depts = {}
+    for fname in os.listdir(GRAD_DIR):
+        m = re.match(r'^([a-zA-Z0-9]+)_(\d+)\.json$', fname)
+        if not m:
+            continue
+        code, year = m.groups()
+        with open(os.path.join(GRAD_DIR, fname), encoding='utf-8') as f:
+            dept_name = json.load(f).get('dept', code)
+        entry = depts.setdefault(code, {'code': code, 'name': dept_name, 'years': []})
+        entry['years'].append(int(year))
+    result = sorted(depts.values(), key=lambda d: d['code'])
+    for d in result:
+        d['years'].sort(reverse=True)
+    return jsonify(result)
+
+
 @app.route('/api/graduation/<dept_code>/<int:year>')
 def api_graduation(dept_code, year):
     """返回指定系所、入學學年的畢業規定 JSON"""

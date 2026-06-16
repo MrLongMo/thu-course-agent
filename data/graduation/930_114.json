@@ -1,0 +1,93 @@
+{
+  "dept": "國際學院國際學院不分系英語學士班",
+  "dept_code": "930",
+  "apply_from": "114",
+  "total_credits": 128,
+  "required_credits": 46,
+  "elective_credits": 82,
+  "elective_note": "",
+  "semester_required": [
+    14,
+    11,
+    7,
+    2,
+    0,
+    0,
+    0,
+    0
+  ],
+  "categories": {
+    "基礎課程": {
+      "courses": [
+        {
+          "name": "中文",
+          "credits": 4,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一英文",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大二英文",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "required": true
+        },
+        {
+          "name": "程式思維與生成式AI",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        },
+        {
+          "name": "大一體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        },
+        {
+          "name": "大二體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        }
+      ]
+    },
+    "通識必修科目": {
+      "required_credits": 12,
+      "note": "通識四領域合計至少12學分：永續實踐領域2學分必修，人文、自然、社會三領域至少各一門課",
+      "domains": [
+        "人文領域",
+        "社會領域",
+        "自然領域",
+        "永續實踐領域",
+        "GL:Trends in Global Ecology & Environmental Change",
+        "GL:Leadership & Global Citizen for the 21 Century",
+        "GL:Trends in Culture & the Arts",
+        "91a47-GL:Personal Identity in Historical Perspective (GL:Personal Identity in Historical Perspective)",
+        "91a48-GL:Exploring Computational Thinking and Generative AI (GL:Exploring Computational Thinking and Generative AI)",
+        "時事華語與臺灣生活",
+        "Tunghai Academic Exploration",
+        "華語閱讀與寫作（一）",
+        "華語閱讀與寫作（二）",
+        "華人思想與臺灣文化",
+        "Entrepreneurship"
+      ]
+    }
+  },
+  "source_url": "https://fsis.thu.edu.tw/wwwstud/info/MustList.php（majr=930, year=114, stype=A）",
+  "last_updated": null
+}

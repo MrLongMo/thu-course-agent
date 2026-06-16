@@ -1,0 +1,242 @@
+{
+  "dept": "法律學院法律學系",
+  "dept_code": "810",
+  "apply_from": "114",
+  "total_credits": 136,
+  "required_credits": 97,
+  "elective_credits": 39,
+  "elective_note": "",
+  "semester_required": [
+    15,
+    13,
+    14,
+    14,
+    10,
+    13,
+    6,
+    0
+  ],
+  "categories": {
+    "基礎課程": {
+      "courses": [
+        {
+          "name": "中文",
+          "credits": 4,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一英文",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大二英文",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "required": true
+        },
+        {
+          "name": "程式思維與生成式AI",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        },
+        {
+          "name": "大二體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        }
+      ]
+    },
+    "通識必修科目": {
+      "required_credits": 12,
+      "note": "通識四領域合計至少12學分：永續實踐領域2學分必修，人文、自然、社會三領域至少各一門課",
+      "domains": [
+        "人文領域",
+        "社會領域",
+        "自然領域",
+        "永續實踐領域"
+      ]
+    },
+    "學系必修科目": {
+      "courses": [
+        {
+          "name": "憲法",
+          "credits": 4,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民法總則",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "刑法總則",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "刑法分則",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民法物權",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民法債編總論",
+          "credits": 6,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "行政法",
+          "credits": 6,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民法親屬",
+          "credits": 2,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民法繼承",
+          "credits": 2,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民法債編各論",
+          "credits": 4,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "民事訴訟法",
+          "credits": 6,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "刑事訴訟法",
+          "credits": 4,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "商事法總論及公司法",
+          "credits": 3,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "證券交易法",
+          "credits": 2,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "票據法",
+          "credits": 2,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "保險法",
+          "credits": 2,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "法律倫理",
+          "credits": 2,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "國際私法",
+          "credits": 4,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        }
+      ]
+    }
+  },
+  "source_url": "https://fsis.thu.edu.tw/wwwstud/info/MustList.php（majr=810, year=114, stype=A）",
+  "last_updated": null
+}

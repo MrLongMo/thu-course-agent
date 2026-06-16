@@ -2309,6 +2309,22 @@
     state.dept = e.target.value; state.page = 1; fetchCourses();
   });
 
+  // ── Grad: 動態載入系所選單 ──
+  async function loadGradDeptOptions() {
+    const sel = document.getElementById('gradDept');
+    try {
+      const res = await fetch('/api/graduation/depts');
+      const depts = await res.json();
+      if (!Array.isArray(depts) || depts.length === 0) return;
+      sel.innerHTML = depts
+        .map(d => `<option value="${d.code}">${d.name}</option>`)
+        .join('');
+    } catch (e) {
+      // 載入失敗就保留原有寫死嘅選項
+    }
+  }
+  loadGradDeptOptions();
+
   // ── Grad: select change ──
   document.getElementById('gradDept').addEventListener('change', () => { gradData = null; loadGraduation(); });
   document.getElementById('gradYear').addEventListener('change', () => { gradData = null; loadGraduation(); });

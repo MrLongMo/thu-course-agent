@@ -1,0 +1,250 @@
+{
+  "dept": "理學院化學系化學組",
+  "dept_code": "221",
+  "apply_from": "114",
+  "total_credits": 128,
+  "required_credits": 88,
+  "elective_credits": 40,
+  "elective_note": "",
+  "semester_required": [
+    18,
+    19,
+    10,
+    9,
+    10,
+    8,
+    0,
+    0
+  ],
+  "categories": {
+    "基礎課程": {
+      "courses": [
+        {
+          "name": "中文",
+          "credits": 4,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一英文",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大二英文",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "required": true
+        },
+        {
+          "name": "程式思維與生成式AI",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        },
+        {
+          "name": "大二體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        }
+      ]
+    },
+    "通識必修科目": {
+      "required_credits": 12,
+      "note": "通識四領域合計至少12學分：永續實踐領域2學分必修，人文、自然、社會三領域至少各一門課",
+      "domains": [
+        "人文領域",
+        "社會領域",
+        "自然領域",
+        "永續實踐領域"
+      ]
+    },
+    "學系必修科目": {
+      "courses": [
+        {
+          "name": "普通化學",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "普通化學實驗",
+          "credits": 2,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "普通物理",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "普通物理實驗",
+          "credits": 2,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "微積分甲〈一〉",
+          "credits": 3,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "微積分甲〈二〉",
+          "credits": 3,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "基礎化學數學",
+          "credits": 3,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "有機化學",
+          "credits": 6,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "有機化學實驗",
+          "credits": 2,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "分析化學",
+          "credits": 3,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "分析化學實驗",
+          "credits": 1,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "儀器分析",
+          "credits": 6,
+          "semesters": [
+            "大二下",
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "物理化學實驗",
+          "credits": 2,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "無機化學",
+          "credits": 6,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "物理化學",
+          "credits": 6,
+          "semesters": [
+            "大三上",
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "儀器分析實驗",
+          "credits": 1,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "綜合討論",
+          "credits": 2,
+          "semesters": [
+            "大四下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "專題研究",
+          "credits": 2,
+          "semesters": [
+            "大四下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "校外實習",
+          "credits": 2,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        }
+      ]
+    }
+  },
+  "source_url": "https://fsis.thu.edu.tw/wwwstud/info/MustList.php（majr=221, year=114, stype=A）",
+  "last_updated": null
+}

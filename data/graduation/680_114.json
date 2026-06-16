@@ -1,0 +1,300 @@
+{
+  "dept": "農業暨健康學院高齡健康與運動科學學士學位學程",
+  "dept_code": "680",
+  "apply_from": "114",
+  "total_credits": 128,
+  "required_credits": 68,
+  "elective_credits": 60,
+  "elective_note": "",
+  "semester_required": [
+    15,
+    14,
+    8,
+    8,
+    6,
+    5,
+    0,
+    0
+  ],
+  "categories": {
+    "基礎課程": {
+      "courses": [
+        {
+          "name": "中文",
+          "credits": 4,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一英文",
+          "credits": 6,
+          "semesters": [
+            "大一上",
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大二英文",
+          "credits": 4,
+          "semesters": [
+            "大二上",
+            "大二下"
+          ],
+          "required": true
+        },
+        {
+          "name": "程式思維與生成式AI",
+          "credits": 2,
+          "semesters": [
+            "大一下"
+          ],
+          "required": true
+        },
+        {
+          "name": "大一體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        },
+        {
+          "name": "大二體育",
+          "credits": 0,
+          "semesters": [],
+          "required": true
+        }
+      ]
+    },
+    "通識必修科目": {
+      "required_credits": 12,
+      "note": "通識四領域合計至少12學分：永續實踐領域2學分必修，人文、自然、社會三領域至少各一門課",
+      "domains": [
+        "人文領域",
+        "社會領域",
+        "自然領域",
+        "永續實踐領域"
+      ]
+    },
+    "學系必修科目": {
+      "courses": [
+        {
+          "name": "人體生理學與實驗",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "人體解剖學與實驗",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "心理學",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "69b49-營養學 (Nutrition)",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "高齡學概論",
+          "credits": 2,
+          "semesters": [
+            "大一上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "生物統計學",
+          "credits": 2,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "運動生物力學",
+          "credits": 2,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "運動生理學與實驗",
+          "credits": 3,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "69f52-急救學 (First Aid)",
+          "credits": 2,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "運動傷害評估學",
+          "credits": 2,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "高齡周全性評估",
+          "credits": 2,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "健康管理",
+          "credits": 2,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "運動處方",
+          "credits": 2,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "運動體能訓練",
+          "credits": 2,
+          "semesters": [
+            "大二下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "科學研究導論",
+          "credits": 2,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "失智症照護與實務",
+          "credits": 2,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "特殊族群活動設計與安排",
+          "credits": 2,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "醫療與法律",
+          "credits": 2,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "照顧服務",
+          "credits": 3,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        }
+      ]
+    },
+    "選修": {
+      "courses": [
+        {
+          "name": "人工智慧與物聯網（AIOT）",
+          "credits": 2,
+          "semesters": [
+            "大一下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "健身律動",
+          "credits": 2,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "健康科技創新設計與應用",
+          "credits": 2,
+          "semesters": [
+            "大二上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "健康產業現況探討",
+          "credits": 2,
+          "semesters": [
+            "大三上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "專題研究",
+          "credits": 2,
+          "semesters": [
+            "大三下"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "照顧服務與運動醫學實務",
+          "credits": 3,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        },
+        {
+          "name": "專題講座",
+          "credits": 3,
+          "semesters": [
+            "大四上"
+          ],
+          "prereq": []
+        }
+      ]
+    }
+  },
+  "source_url": "https://fsis.thu.edu.tw/wwwstud/info/MustList.php（majr=680, year=114, stype=A）",
+  "last_updated": null
+}
